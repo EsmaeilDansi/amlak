@@ -18,8 +18,9 @@ class MessageAdapter extends TypeAdapter<Message> {
     };
     return Message(
       value: fields[5] as int,
-      uuid: fields[0] as String,
-      owner_uuid: fields[1] as String,
+      id: fields[0] as String?,
+      packId: fields[7] as String,
+      owner_id: fields[1] as String,
       time: fields[2] as int,
       caption: fields[3] as String,
       messageType: fields[6] as MessageType,
@@ -30,11 +31,11 @@ class MessageAdapter extends TypeAdapter<Message> {
   @override
   void write(BinaryWriter writer, Message obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
-      ..write(obj.uuid)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.owner_uuid)
+      ..write(obj.owner_id)
       ..writeByte(2)
       ..write(obj.time)
       ..writeByte(3)
@@ -44,7 +45,9 @@ class MessageAdapter extends TypeAdapter<Message> {
       ..writeByte(5)
       ..write(obj.value)
       ..writeByte(6)
-      ..write(obj.messageType);
+      ..write(obj.messageType)
+      ..writeByte(7)
+      ..write(obj.packId);
   }
 
   @override

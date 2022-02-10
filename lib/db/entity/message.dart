@@ -6,10 +6,10 @@ part 'message.g.dart';
 @HiveType(typeId: 2)
 class Message {
   @HiveField(0)
-  String uuid;
+  String? id;
 
   @HiveField(1)
-  String owner_uuid;
+  String owner_id;
 
   @HiveField(2)
   int time;
@@ -26,10 +26,14 @@ class Message {
   @HiveField(6)
   MessageType messageType;
 
+  @HiveField(7)
+  String packId;
+
   Message(
       {required this.value,
-      required this.uuid,
-      required this.owner_uuid,
+      this.id,
+      required this.packId,
+      required this.owner_id,
       required this.time,
       required this.caption,
       required this.messageType,

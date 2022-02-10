@@ -1,4 +1,5 @@
 import 'package:amlak_client/db/entity/message.dart';
+import 'package:amlak_client/db/entity/message_type.dart';
 import 'package:hive/hive.dart';
 
 class MessageDao {
@@ -8,12 +9,26 @@ class MessageDao {
 
   saveMessage(Message message) async {
     var box = await _open();
-    box.put(message.uuid, message);
+    box.put(message.id.toString(), message);
   }
 
   Future<Message?> getMessage(String uuid) async {
     var box = await _open();
-    return box.values.firstWhere((element) => element.uuid == uuid);
+    return box.values.firstWhere((element) => element.id == uuid);
+  }
+
+  Future<List<Message>?> getReqMessage() async {
+    var box = await _open();
+    return box.values
+        .where((element) => element.messageType == MessageType.Req)
+        .toList();
+  }
+
+  Future<List<Message>?> getSaleMessage() async {
+    var box = await _open();
+    return box.values
+        .where((element) => element.messageType == MessageType.Sale)
+        .toList();
   }
 
   Stream<List<Message>> getAllMessage() async* {
