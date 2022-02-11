@@ -36,24 +36,23 @@ class MessageRepo {
     var res = await get(Uri.parse("$BASE_URI/getAllMessage/"));
     List<dynamic> messages = jsonDecode(res.body);
     for (var element in messages) {
-      print(element.toString());
       _messageDao.saveMessage(
         Message(
-            owner_id: element["owner_id"]??"",
-            messageType:getMsgType(element["type"]),
-            packId: element["packId"]??"",
+            owner_id: element["owner_id"] ?? "",
+            messageType: getMsgType(element["type"]),
+            packId: element["packId"] ?? "",
             value: element["value"],
             caption: element["caption"],
             location: element["location"],
             time: element["create_time"]),
       );
     }
-//    print(res.body);
   }
-  MessageType getMsgType(String type){
-    if(type.contains("req")){
+
+  MessageType getMsgType(String type) {
+    if (type.contains("req")) {
       return MessageType.Req;
-    }else{
+    } else {
       return MessageType.Sale;
     }
   }
