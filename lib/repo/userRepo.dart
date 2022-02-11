@@ -15,7 +15,7 @@ class UserRepo {
         Uri.parse("$BASE_URI/login/"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(
-            <String, String>{'id': '032', 'phoneNumber': phoneNumber.toString()}),
+            <String, String>{'id': '0', 'phoneNumber': phoneNumber.toString()}),
       );
 
       _accountDao.saveAccount(Account(phoneNumber, res.body));

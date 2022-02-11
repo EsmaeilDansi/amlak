@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:amlak_client/db/dao/messageDao.dart';
 import 'package:amlak_client/db/entity/message.dart';
 import 'package:amlak_client/db/entity/message_type.dart';
+import 'package:dio/dio.dart' as d;
+
+import 'package:http_parser/http_parser.dart';
 
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
@@ -15,7 +18,7 @@ class MessageRepo {
   Future<void> sendMessage(Message message) async {
     var res = await post(
       Uri.parse(
-        'http://127.0.0.1:8090/setPost/',
+        '$BASE_URI/setPost/',
       ),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(<String, String>{
@@ -57,5 +60,15 @@ class MessageRepo {
     }
   }
 
-  sendFile() async {}
+  sendFile(String filePath) async {
+    d.FormData formData = d.FormData.fromMap({
+      "file": d.MultipartFile.fromFileSync(
+        filePath,
+        contentType: MediaType.parse("application/octet-stream"),
+      )
+    });
+
+    d.Dio dio = d.Dio();
+    var res = await dio.post("$BASE_URI/upload/", data: formData);
+  }
 }
