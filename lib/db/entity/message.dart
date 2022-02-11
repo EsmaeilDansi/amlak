@@ -29,9 +29,13 @@ class Message {
   @HiveField(7)
   String packId;
 
+  @HiveField(8)
+  String? fileUuid;
+
   Message(
       {required this.value,
       this.id,
+      this.fileUuid,
       required this.packId,
       required this.owner_id,
       required this.time,

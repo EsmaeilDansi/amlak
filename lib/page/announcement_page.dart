@@ -29,10 +29,12 @@ class AnnouncementPage extends StatelessWidget {
                   caption: "4343",
                   messageType: MessageType.Sale,
                   location: "erer");
-              // var res = await FilePicker.platform.pickFiles();
-              // print(res!.files.first.path!.toString());
-              String path = 'C:\\Users\\pardis66469040\\Desktop\\221159166192217118145141622817877224674251.jpg';
-              GetIt.I.get<MessageRepo>().sendFile(path);
+             // var res = await FilePicker.platform.pickFiles();
+
+              // String path = 'C:\\Users\\pardis66469040\\Desktop\\221159166192217118145141622817877224674251.jpg';
+            GetIt.I.get<MessageRepo>().getFileInfo("1234567");
+              // GetIt.I.get<MessageRepo>().downloadFile("photo_2021-03-16_09-49-58.jpg12345");
+            //  GetIt.I.get<MessageRepo>().sendFile( res!.files.first.path!.toString(), "1234567");
             },
           ),
           const TextField(

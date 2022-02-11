@@ -1,7 +1,7 @@
 import 'package:permission_handler/permission_handler.dart';
 
 class PermissionServices {
-  Future<void> getStoragePermission() async {
+  Future<bool> getStoragePermission() async {
     if (!await Permission.photos.request().isGranted ||
         !await Permission.storage.isGranted ||
         !await Permission.accessMediaLocation.isGranted) {
@@ -11,6 +11,8 @@ class PermissionServices {
         Permission.accessMediaLocation,
         Permission.storage,
       ].request();
+      return true;
     }
+    return true;
   }
 }
