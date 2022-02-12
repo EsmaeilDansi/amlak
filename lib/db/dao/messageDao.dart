@@ -25,6 +25,7 @@ class MessageDao {
   }
 
   Future<List<Message>?> getSaleMessage() async {
+
     var box = await _open();
     return box.values
         .where((element) => element.messageType == MessageType.Sale)
@@ -32,11 +33,16 @@ class MessageDao {
   }
 
   Stream<List<Message>> getAllMessage() async* {
-    var box = await _open();
+    try{
+      var box = await _open();
 
-    yield sorted(box.values.toList());
+      yield sorted(box.values.toList()).reversed.toList();
 
-    yield* box.watch().map((event) => sorted(box.values.toList()));
+      yield* box.watch().map((event) => sorted(box.values.toList()).reversed.toList());
+    }catch(e){
+      print(e.toString());
+    }
+
   }
 
   Stream<List<Message>> getAllMessageByValue(int min, int max) async* {

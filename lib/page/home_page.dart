@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox(
-          height: 100,
+          height: 50,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -75,7 +75,7 @@ class HomePage extends StatelessWidget {
               return const SizedBox.shrink();
             }
             if (snapshot.data == page.announcementPage) {
-              return const AnnouncementPage();
+              return  AnnouncementPage();
             } else if (snapshot.data == page.addMessage) {
               return const NewMessagePage();
             } else if (snapshot.data == page.myPage) {

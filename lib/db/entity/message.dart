@@ -26,20 +26,21 @@ class Message {
   @HiveField(6)
   MessageType messageType;
 
+
   @HiveField(7)
-  String packId;
+  String? fileUuid;
 
   @HiveField(8)
-  String? fileUuid;
+  int measure;
 
   Message(
       {required this.value,
       this.id,
       this.fileUuid,
-      required this.packId,
       required this.owner_id,
       required this.time,
       required this.caption,
+      required this.measure,
       required this.messageType,
       required this.location});
 }

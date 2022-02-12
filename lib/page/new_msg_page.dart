@@ -1,13 +1,15 @@
 import 'dart:io';
 
+import 'package:amlak_client/db/entity/message.dart';
+import 'package:amlak_client/db/entity/message_type.dart';
+import 'package:amlak_client/repo/messageRepo.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get_it/get_it.dart';
 import 'package:rxdart/rxdart.dart';
-
-enum msg_type { request, sale }
 
 class NewMessagePage extends StatefulWidget {
   const NewMessagePage({Key? key}) : super(key: key);
@@ -17,13 +19,19 @@ class NewMessagePage extends StatefulWidget {
 }
 
 class _NewMessagePageState extends State<NewMessagePage> {
-  final BehaviorSubject<msg_type> _valueSubject =
-      BehaviorSubject.seeded(msg_type.sale);
+  final BehaviorSubject<MessageType> _valueSubject =
+      BehaviorSubject.seeded(MessageType.Sale);
 
   final List<String> _selectedFilePath = [];
   final _positionFormKey = GlobalKey<FormState>();
+  final _captionFormKey = GlobalKey<FormState>();
   final _valueFormKey = GlobalKey<FormState>();
   final _measureFormKey = GlobalKey<FormState>();
+  final _messageRepo = GetIt.I.get<MessageRepo>();
+  final _locationController = TextEditingController();
+  final _valueController = TextEditingController();
+  final _measureController = TextEditingController();
+  final _captionController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +46,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
             children: [
               SizedBox(
                 width: 150,
-                child: StreamBuilder<msg_type>(
+                child: StreamBuilder<MessageType>(
                     stream: _valueSubject.stream,
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data != null) {
@@ -50,18 +58,18 @@ class _NewMessagePageState extends State<NewMessagePage> {
                             style: const TextStyle(
                                 fontSize: 16, color: Colors.black),
                             value: snapshot.data,
-                            items: const <DropdownMenuItem<msg_type>>[
+                            items: const <DropdownMenuItem<MessageType>>[
                               DropdownMenuItem(
                                 child: Text("آگهی فروش"),
-                                value: msg_type.sale,
+                                value: MessageType.Sale,
                               ),
                               DropdownMenuItem(
                                 child: Text("آگهی درخواست"),
-                                value: msg_type.request,
+                                value: MessageType.Req,
                               )
                             ],
                             onChanged: (value) {
-                              _valueSubject.add(value as msg_type);
+                              _valueSubject.add(value as MessageType);
                             });
                       } else {
                         return const SizedBox.shrink();
@@ -75,19 +83,22 @@ class _NewMessagePageState extends State<NewMessagePage> {
             ],
           ),
           const Divider(),
-          StreamBuilder<msg_type>(
+          StreamBuilder<MessageType>(
               stream: _valueSubject.stream,
               builder: (c, snapshot) {
                 if (snapshot.hasData && snapshot.data != null) {
-                  if (snapshot.data == msg_type.sale) {
-                    return Expanded(
-                      child: Column(
-                        children: [
-                          Text("انتخاب عکس برای آگهی"),
-                          picturePage(),
-                        ],
-                      ),
-                    );
+                  if (snapshot.data == MessageType.Sale) {
+                    return SizedBox(
+                      height: 200,
+                        child: Scrollbar(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Text("انتخاب عکس برای آگهی"),
+                              picturePage(),
+                            ],
+                          ),
+                        ));
                   } else {
                     return const SizedBox.shrink();
                   }
@@ -115,8 +126,24 @@ class _NewMessagePageState extends State<NewMessagePage> {
                 if (_measureFormKey.currentState?.validate() ?? false) {
                   if (_valueFormKey.currentState?.validate() ?? false) {
                     if (_positionFormKey.currentState?.validate() ?? false) {
-                      //todo
-                      Fluttertoast.showToast(msg: "آگهی شما ثبت شد.");
+                      if (_captionFormKey.currentState?.validate() ?? false) {
+                        _messageRepo.sendMessage(
+                            Message(
+                              owner_id: "123456",
+                              fileUuid: "123456" +
+                                  DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString(),
+                              caption: _captionController.text,
+                              time: DateTime.now().millisecondsSinceEpoch,
+                              messageType: _valueSubject.value,
+                              measure: int.parse(_measureController.text),
+                              value: int.parse(_valueController.text),
+                              location: _locationController.text,
+                            ),
+                            _selectedFilePath);
+                      }
+                      //   Fluttertoast.showToast(msg: "آگهی شما ثبت شد.");
                     }
                   }
                 }
@@ -140,8 +167,8 @@ class _NewMessagePageState extends State<NewMessagePage> {
                 itemBuilder: (c, index) {
                   if (index == 0) {
                     return Container(
-                      width: 100,
-                      height: 100,
+                      width: 300,
+                      height: 200,
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Colors.blue,
@@ -158,18 +185,21 @@ class _NewMessagePageState extends State<NewMessagePage> {
                                   for (var element in res.files) {
                                     _selectedFilePath.add(element.path!);
                                   }
-                                  setState(() {});}
+                                  setState(() {});
+                                }
                               },
                               icon: const Icon(
-                                  Icons.add_photo_alternate_outlined,size: 35,))),
+                                Icons.add_photo_alternate_outlined,
+                                size: 35,
+                              ))),
                     );
                   } else {
                     return Padding(
                       padding: const EdgeInsets.only(
                           left: 3, right: 3, top: 3, bottom: 3),
                       child: Container(
-                        width: 100,
-                        height: 100,
+                        width: 200,
+                        height: 200,
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: Colors.blue,
@@ -179,8 +209,10 @@ class _NewMessagePageState extends State<NewMessagePage> {
                         ),
                         child: Stack(
                           children: [
-                            Image.file(
-                              File(_selectedFilePath[index - 1]),
+                            Center(
+                              child: Image.file(
+                                File(_selectedFilePath[index - 1],),width: 200,height: 200,
+                              ),
                             ),
                             Positioned(
                                 child: Container(
@@ -209,7 +241,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
                   }
                 },
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5),
+                    crossAxisCount: 3),
               ),
             ),
           )
@@ -220,44 +252,71 @@ class _NewMessagePageState extends State<NewMessagePage> {
 
   Widget inputInformationPage() {
     return Expanded(
-      child: ListView(
-        children: [
-          Form(
-            key: _measureFormKey,
-            child: TextFormField(
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "مقادیر درخواستی را وارد کنید";
-                }
-              },
-              decoration: buildInputDecoration("متراژ بر حسب متر مربع"),
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: ListView(
+          children: [
+            Form(
+              key: _measureFormKey,
+              child: TextFormField(
+                controller: _measureController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "مقادیر درخواستی را وارد کنید";
+                  }
+                },
+                decoration: buildInputDecoration("متراژ بر حسب متر مربع"),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
             ),
-          ),
-          Form(
-            key: _valueFormKey,
-            child: TextFormField(
-              decoration: buildInputDecoration("قیمت بر حسب تومان"),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "مقادیر درخواستی را وارد کنید";
-                }
-              },
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            SizedBox(
+              height: 20,
             ),
-          ),
-          Form(
-            key: _positionFormKey,
-            child: TextFormField(
-              decoration: buildInputDecoration("موقعیت جغرافیایی"),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "مقادیر درخواستی را وارد کنید";
-                }
-              },
+            Form(
+              key: _valueFormKey,
+              child: TextFormField(
+                controller: _valueController,
+                decoration: buildInputDecoration("قیمت بر حسب تومان"),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "مقادیر درخواستی را وارد کنید";
+                  }
+                },
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
             ),
-          ),
-        ],
+            SizedBox(
+              height: 20,
+            ),
+            Form(
+              key: _positionFormKey,
+              child: TextFormField(
+                controller: _locationController,
+                decoration: buildInputDecoration("موقعیت جغرافیایی"),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "مقادیر درخواستی را وارد کنید";
+                  }
+                },
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Form(
+              key: _captionFormKey,
+              child: TextFormField(
+                controller: _captionController,
+                decoration: buildInputDecoration("توضیحات"),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "مقادیر درخواستی را وارد کنید";
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -271,6 +330,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
             style: TextStyle(color: Colors.red),
           ),
         ),
+        border: const OutlineInputBorder(),
         labelText: label);
   }
 }
