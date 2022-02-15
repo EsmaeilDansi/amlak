@@ -1,5 +1,6 @@
 import 'package:amlak_client/db/dao/accountDao.dart';
 import 'package:amlak_client/db/entity/account.dart';
+import 'package:amlak_client/page/pinnedPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -81,7 +82,13 @@ class MyPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(children: [Icon(Icons.bookmark), Text("نشان شده ها")]),
-                Icon(Icons.arrow_forward_ios)
+                IconButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (c) {
+                        return PinnedPage();
+                      }));
+                    },
+                    icon: Icon(Icons.arrow_forward_ios))
               ],
             ),
           ),

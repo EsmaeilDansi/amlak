@@ -53,12 +53,16 @@ class MessageDao {
         .toList());
   }
 
-  Future<List<Message>> getAllMessageByLocation(String location) async {
+  Stream<List<Message>> getAllMessageByLocation(String location) async* {
     var box = await _open();
 
-    return sorted(
-        box.values.where((element) => element.location == location).toList());
+    yield sorted(box.values
+        .where((element) => element.location.contains(location))
+        .toList());
 
+    yield* box.watch().map((event) => sorted(box.values
+        .where((element) => element.location.contains(location))
+        .toList()));
   }
 
   List<Message> sorted(List<Message> list) {
@@ -69,8 +73,12 @@ class MessageDao {
 
   Future<List<Message>> getAllMessageByDsc(String text) async {
     var box = await _open();
-    return  sorted(
+    return sorted(
         box.values.where((element) => element.caption.contains(text)).toList());
+  }
 
+  Future<List<Message>?>getPinnedMessage() async {
+    var box = await _open();
+    return sorted(box.values.where((element) => element.isPined).toList());
   }
 }

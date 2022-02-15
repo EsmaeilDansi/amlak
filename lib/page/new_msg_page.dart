@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:amlak_client/db/entity/message.dart';
 import 'package:amlak_client/db/entity/message_type.dart';
 import 'package:amlak_client/repo/messageRepo.dart';
+import 'package:amlak_client/services/locationServices.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -24,15 +25,30 @@ class _NewMessagePageState extends State<NewMessagePage> {
   final BehaviorSubject<MessageType> _valueSubject =
       BehaviorSubject.seeded(MessageType.Sale);
   final List<String> _selectedFilePath = [];
+  final BehaviorSubject<String> _currentLocation = BehaviorSubject.seeded("");
   final _positionFormKey = GlobalKey<FormState>();
   final _captionFormKey = GlobalKey<FormState>();
   final _valueFormKey = GlobalKey<FormState>();
   final _measureFormKey = GlobalKey<FormState>();
   final _messageRepo = GetIt.I.get<MessageRepo>();
-  final _locationController = TextEditingController();
   final _valueController = TextEditingController();
   final _measureController = TextEditingController();
   final _captionController = TextEditingController();
+  final _locationServices = GetIt.I.get<LocationServices>();
+  final _provinces = [];
+
+  @override
+  void initState() {
+    _load();
+    super.initState();
+  }
+
+  _load() async {
+    var res = await _locationServices.getProvince();
+    _provinces.addAll(res);
+    _currentLocation.add((res[7].name));
+    _currentLocation.add(_currentLocation.value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,23 +181,177 @@ class _NewMessagePageState extends State<NewMessagePage> {
                   height: 20,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 8,
-                    right: 10,
-                  ),
-                  child: Form(
-                    key: _positionFormKey,
-                    child: TextFormField(
-                      controller: _locationController,
-                      decoration: buildInputDecoration("موقعیت جغرافیایی"),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "مقادیر درخواستی را وارد کنید";
-                        }
-                      },
+                    padding: const EdgeInsets.only(
+                      left: 8,
+                      right: 10,
                     ),
-                  ),
-                ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.blue,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (c) {
+                                      return AlertDialog(
+                                        content: FutureBuilder<List<Province>>(
+                                          future:
+                                              _locationServices.getProvince(),
+                                          builder:
+                                              (BuildContext context, snapshot) {
+                                            if (snapshot.hasData &&
+                                                snapshot.data != null) {
+                                              return SizedBox(
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height -
+                                                    200,
+                                                width: 150,
+                                                child: Column(
+                                                  children: [
+                                                    StreamBuilder<String>(
+                                                        stream: _currentLocation
+                                                            .stream,
+                                                        builder: (c, s) {
+                                                          if (s.hasData &&
+                                                              s.data != null) {
+                                                            return Text(
+                                                                s.data!);
+                                                          }
+                                                          return const SizedBox
+                                                              .shrink();
+                                                        }),
+                                                    Expanded(
+                                                      child: ListView.builder(
+                                                          shrinkWrap: true,
+                                                          itemBuilder:
+                                                              (c, index) {
+                                                            List<String> ci =
+                                                                [];
+                                                            ci.add(snapshot
+                                                                .data![index]
+                                                                .name);
+                                                            ci.addAll(_locationServices
+                                                                .getCityOfProvince(
+                                                                    snapshot
+                                                                        .data![
+                                                                            index]
+                                                                        .id)
+                                                                .map((e) =>
+                                                                    snapshot
+                                                                        .data![
+                                                                            index]
+                                                                        .name +
+                                                                    "_" +
+                                                                    e.name));
+                                                            return GestureDetector(
+                                                              onTap: () {
+                                                                _currentLocation
+                                                                    .add(ci[0]);
+                                                                Navigator.pop(
+                                                                    context);
+                                                              },
+                                                              child:
+                                                                  DropdownButton<
+                                                                      String>(
+                                                                value: ci[0],
+                                                                icon: const Icon(
+                                                                    Icons
+                                                                        .arrow_drop_down_outlined),
+                                                                iconSize: 24,
+                                                                elevation: 16,
+                                                                style: const TextStyle(
+                                                                    color: Colors
+                                                                        .deepPurple),
+                                                                underline:
+                                                                    Container(
+                                                                  height: 2,
+                                                                  color: Colors
+                                                                      .deepPurpleAccent,
+                                                                ),
+                                                                onChanged:
+                                                                    (newValue) {},
+                                                                items: ci.map<
+                                                                    DropdownMenuItem<
+                                                                        String>>((String
+                                                                    value) {
+                                                                  return DropdownMenuItem<
+                                                                      String>(
+                                                                    value:
+                                                                        value,
+                                                                    child:
+                                                                        GestureDetector(
+                                                                      child: Text(
+                                                                          value),
+                                                                      onTap:
+                                                                          () {
+                                                                        _currentLocation
+                                                                            .add(value);
+                                                                        Navigator.of(context)
+                                                                            .pop();
+                                                                      },
+                                                                    ),
+                                                                  );
+                                                                }).toList(),
+                                                              ),
+                                                            );
+                                                          },
+                                                          itemCount: snapshot
+                                                              .data!.length),
+                                                    ),
+                                                    TextButton(
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            Navigator.pop(c);
+                                                          });
+                                                        },
+                                                        child: Text("اعمال"))
+                                                  ],
+                                                ),
+                                              );
+                                            } else {
+                                              return const SizedBox.shrink();
+                                            }
+                                          },
+                                        ),
+                                      );
+                                    });
+                              },
+                              icon: const Icon(
+                                CupertinoIcons.location,
+                                color: Colors.deepPurple,
+                                size: 16,
+                              )),
+                          StreamBuilder<String>(
+                              stream: _currentLocation.stream,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData && snapshot.data != null) {
+                                  return Text(
+                                    snapshot.data!,
+                                    style: const TextStyle(
+                                        color: Colors.amber, fontSize: 15),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              }),
+                          const SizedBox(
+                            width: 4,
+                          ),
+                          const Text(":موقعیت مکانی "),
+                          const SizedBox(
+                            width: 30,
+                          )
+                        ],
+                      ),
+                    )),
                 const SizedBox(
                   height: 20,
                 ),
@@ -229,35 +399,33 @@ class _NewMessagePageState extends State<NewMessagePage> {
               onTap: () {
                 if (_measureFormKey.currentState?.validate() ?? false) {
                   if (_valueFormKey.currentState?.validate() ?? false) {
-                    if (_positionFormKey.currentState?.validate() ?? false) {
-                      if (_captionFormKey.currentState?.validate() ?? false) {
-                        _messageRepo.sendMessage(
-                            Message(
-                              owner_id: "123456",
-                              fileUuid: "123456" +
-                                  DateTime.now()
-                                      .millisecondsSinceEpoch
-                                      .toString(),
-                              caption: _captionController.text,
-                              isPined: false,
-                              time: DateTime.now().millisecondsSinceEpoch,
-                              messageType: _valueSubject.value,
-                              measure: int.parse(_measureController.text),
-                              value: int.parse(_valueController.text),
-                              location: _locationController.text,
-                            ),
-                            _selectedFilePath);
-                      }
-                      FToast fToast = FToast();
-                      fToast.init(context);
-
-                      fToast.showToast(
-                        child: Text("آگهی شما ثبت شد."),
-                        gravity: ToastGravity.BOTTOM,
-                        toastDuration: const Duration(seconds: 2),
-                      );
-                      widget.back();
+                    if (_captionFormKey.currentState?.validate() ?? false) {
+                      _messageRepo.sendMessage(
+                          Message(
+                            owner_id: "123456",
+                            fileUuid: "123456" +
+                                DateTime.now()
+                                    .millisecondsSinceEpoch
+                                    .toString(),
+                            caption: _captionController.text,
+                            isPined: false,
+                            time: DateTime.now().millisecondsSinceEpoch,
+                            messageType: _valueSubject.value,
+                            measure: int.parse(_measureController.text),
+                            value: int.parse(_valueController.text),
+                            location: _currentLocation.value,
+                          ),
+                          _selectedFilePath);
                     }
+                    FToast fToast = FToast();
+                    fToast.init(context);
+
+                    fToast.showToast(
+                      child: const Text("آگهی شما ثبت شد."),
+                      gravity: ToastGravity.BOTTOM,
+                      toastDuration: const Duration(seconds: 2),
+                    );
+                    widget.back();
                   }
                 }
               },
@@ -376,7 +544,6 @@ class _NewMessagePageState extends State<NewMessagePage> {
 
   InputDecoration buildInputDecoration(label) {
     return InputDecoration(
-
         suffixIcon: const Padding(
           padding: EdgeInsets.only(top: 20, left: 25),
           child: Text(

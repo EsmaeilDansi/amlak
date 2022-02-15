@@ -70,14 +70,16 @@ class MessageRepo {
     _messageDao.saveMessage(message..id = res.body);
   }
 
-  Future<void> fetchMessage()async {
+  Future<void> fetchMessage() async {
     _fetchMessage();
   }
 
   Future<List<Message>?> _fetchMessage() async {
-    var res = await get(Uri.parse("$BASE_URI/getAllMessage/"));
+    var res = await get(Uri.parse("$BASE_URI/getAllMessage/"), headers: {'Content-Type': 'application/json'},);
+   // print(res.body);
     List<dynamic> messages = jsonDecode(res.body);
     for (var element in messages) {
+     print(utf8.decode(element["location"].toString().codeUnits));
 
       _messageDao.saveMessage(
         Message(
@@ -85,10 +87,10 @@ class MessageRepo {
             messageType: getMsgType(element["type"]),
             fileUuid: element["file_uuid"],
             value: element["value"],
-            caption: element["caption"],
+            caption: utf8.decode(element["caption"].toString().codeUnits),
             id: element["id"],
             isPined: false,
-            location: element["location"],
+            location:  utf8.decode(element["location"].toString().codeUnits),
             time: element["create_time"],
             measure: element["measure"]),
       );

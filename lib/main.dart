@@ -4,6 +4,7 @@ import 'package:amlak_client/db/entity/user.dart';
 import 'package:amlak_client/page/home_page.dart';
 import 'package:amlak_client/repo/messageRepo.dart';
 import 'package:amlak_client/repo/userRepo.dart';
+import 'package:amlak_client/services/locationServices.dart';
 import 'package:amlak_client/services/permissionServices.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -39,6 +40,7 @@ _register() {
   GetIt.I.registerSingleton<UserRepo>(UserRepo());
   GetIt.I.registerSingleton<MessageRepo>(MessageRepo());
   GetIt.I.registerSingleton<PermissionServices>(PermissionServices());
+  GetIt.I.registerSingleton<LocationServices>(LocationServices());
 }
 
 class MyApp extends StatelessWidget {
@@ -50,7 +52,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(),
+      home: Directionality(
+        textDirection: TextDirection.ltr,
+        child: HomePage(),
+      ),
     );
   }
 }

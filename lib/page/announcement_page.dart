@@ -4,7 +4,9 @@ import 'package:amlak_client/db/dao/messageDao.dart';
 import 'package:amlak_client/db/entity/file.dart' as model;
 import 'package:amlak_client/db/entity/message.dart';
 import 'package:amlak_client/db/entity/message_type.dart';
+import 'package:amlak_client/page/message_page.dart';
 import 'package:amlak_client/repo/messageRepo.dart';
+import 'package:amlak_client/services/locationServices.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +14,7 @@ import 'package:get_it/get_it.dart';
 import 'package:rxdart/subjects.dart';
 
 class AnnouncementPage extends StatefulWidget {
-  AnnouncementPage({Key? key}) : super(key: key);
+  const AnnouncementPage({Key? key}) : super(key: key);
 
   @override
   State<AnnouncementPage> createState() => _AnnouncementPageState();
@@ -24,10 +26,17 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   @override
   void initState() {
     _messageRepo.fetchMessage();
+    _loadLocation();
     super.initState();
   }
 
+  _loadLocation() async {
+    _currentLocation.add((await _locationServices.getProvince())[7].name);
+  }
+
   final _messageRepo = GetIt.I.get<MessageRepo>();
+  final _locationServices = GetIt.I.get<LocationServices>();
+  final BehaviorSubject<String> _currentLocation = BehaviorSubject.seeded("");
 
   final BehaviorSubject<List<Message>> _messages = BehaviorSubject.seeded([]);
   final BehaviorSubject<String> _searchState = BehaviorSubject.seeded("");
@@ -35,9 +44,6 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   final _desController = TextEditingController();
   final _minValueController = TextEditingController();
   final _maxValueController = TextEditingController();
-
-  // final _minMeasureController = TextEditingController();
-  // final _maxMeasureController = TextEditingController();
 
   final BehaviorSubject<bool> _search = BehaviorSubject.seeded(false);
 
@@ -90,46 +96,199 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                       ),
                     );
                   } else {
-                    return TextField(
-                      onChanged: (str) {
-                        if (str.isEmpty) {
-                          _search.add(false);
-                          setState(() {});
-                        }
-                      },
-                      decoration: InputDecoration(
-                        labelText: "جستجو بر اساس توضیحات آگهی",
-                        labelStyle: const TextStyle(
-                          color: Colors.deepPurple,
-                          fontSize: 12,
-                        ),
-                        suffixIcon: StreamBuilder<bool>(
-                            stream: _search.stream,
+                    return Row(
+                      children: [
+                        StreamBuilder<String>(
+                            stream: _currentLocation.stream,
                             builder: (context, snapshot) {
-                              return IconButton(
-                                  icon: Icon(
-                                    snapshot.hasData && snapshot.data!
-                                        ? CupertinoIcons.clear
-                                        : CupertinoIcons.search,
-                                    color: Colors.cyanAccent,
-                                  ),
-                                  onPressed: () async {
-                                    if (_search.stream.value) {
-                                      setState(() {});
-                                      _desController.clear();
-                                      _search.add(false);
-                                    } else if (_desController.text.isNotEmpty) {
-                                      var msg = _messages.value.where(
-                                          (element) => element.caption
-                                              .contains(_desController.text));
-                                      _messages.add(msg.toList());
-                                      _search.add(true);
-                                    }
-                                  });
+                              if (snapshot.hasData && snapshot.data != null) {
+                                return Text(
+                                  snapshot.data!,
+                                  style: const TextStyle(
+                                      color: Colors.amber, fontSize: 15),
+                                );
+                              }
+                              return const SizedBox.shrink();
                             }),
-                        border: const OutlineInputBorder(),
-                      ),
-                      controller: _desController,
+                        IconButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (c) {
+                                    return AlertDialog(
+                                      content: FutureBuilder<List<Province>>(
+                                        future: _locationServices.getProvince(),
+                                        builder:
+                                            (BuildContext context, snapshot) {
+                                          if (snapshot.hasData &&
+                                              snapshot.data != null) {
+                                            return SizedBox(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height -
+                                                  200,
+                                              width: 150,
+                                              child: Column(
+                                                children: [
+                                                  StreamBuilder<String>(
+                                                      stream: _currentLocation
+                                                          .stream,
+                                                      builder: (c, s) {
+                                                        if (s.hasData &&
+                                                            s.data != null) {
+                                                          return Text(s.data!);
+                                                        }
+                                                        return const SizedBox
+                                                            .shrink();
+                                                      }),
+                                                  Expanded(
+                                                    child: ListView.builder(
+                                                        shrinkWrap: true,
+                                                        itemBuilder:
+                                                            (c, index) {
+                                                          List<String> ci = [];
+                                                          ci.add(snapshot
+                                                              .data![index]
+                                                              .name);
+                                                          ci.addAll(_locationServices
+                                                              .getCityOfProvince(
+                                                                  snapshot
+                                                                      .data![
+                                                                          index]
+                                                                      .id)
+                                                              .map((e) =>
+                                                                  snapshot
+                                                                      .data![
+                                                                          index]
+                                                                      .name +
+                                                                  "_" +
+                                                                  e.name));
+                                                          return GestureDetector(
+                                                            onTap: () {
+                                                              _currentLocation
+                                                                  .add(ci[0]);
+                                                              Navigator.pop(
+                                                                  context);
+                                                            },
+                                                            child:
+                                                                DropdownButton<
+                                                                    String>(
+                                                              value: ci[0],
+                                                              icon: const Icon(Icons
+                                                                  .arrow_drop_down_outlined),
+                                                              iconSize: 24,
+                                                              elevation: 1,
+                                                              style: const TextStyle(
+                                                                  color: Colors
+                                                                      .deepPurple),
+                                                              underline:
+                                                                  Container(
+                                                                height: 2,
+                                                                color: Colors
+                                                                    .deepPurpleAccent,
+                                                              ),
+                                                              onChanged:
+                                                                  (newValue) {},
+                                                              items: ci.map<
+                                                                  DropdownMenuItem<
+                                                                      String>>((String
+                                                                  value) {
+                                                                return DropdownMenuItem<
+                                                                    String>(
+                                                                  value: value,
+                                                                  child:
+                                                                      GestureDetector(
+                                                                    child: Text(
+                                                                        value),
+                                                                    onTap: () {
+                                                                      _currentLocation
+                                                                          .add(
+                                                                              value);
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop();
+                                                                    },
+                                                                  ),
+                                                                );
+                                                              }).toList(),
+                                                            ),
+                                                          );
+                                                        },
+                                                        itemCount: snapshot
+                                                            .data!.length),
+                                                  ),
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          Navigator.pop(
+                                                              context);
+                                                        });
+                                                      },
+                                                      child: Text("جستجو"))
+                                                ],
+                                              ),
+                                            );
+                                          } else {
+                                            return const SizedBox.shrink();
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  });
+                            },
+                            icon: const Icon(
+                              CupertinoIcons.location,
+                              color: Colors.deepPurple,
+                              size: 15,
+                            )),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            onChanged: (str) {
+                              if (str.isEmpty) {
+                                _search.add(false);
+                                setState(() {});
+                              }
+                            },
+                            decoration: InputDecoration(
+                              hintText: "جستجو بر اساس توضیحات آگهی",
+                              hintStyle: const TextStyle(
+                                color: Colors.deepPurple,
+                                fontSize: 12,
+                              ),
+                              suffixIcon: StreamBuilder<bool>(
+                                  stream: _search.stream,
+                                  builder: (context, snapshot) {
+                                    return IconButton(
+                                        icon: Icon(
+                                          snapshot.hasData && snapshot.data!
+                                              ? CupertinoIcons.clear
+                                              : CupertinoIcons.search,
+                                          color: Colors.cyanAccent,
+                                        ),
+                                        onPressed: () async {
+                                          if (_search.stream.value) {
+                                            setState(() {});
+                                            _desController.clear();
+                                            _search.add(false);
+                                          } else if (_desController
+                                              .text.isNotEmpty) {
+                                            var msg = _messages.value.where(
+                                                (element) => element.caption
+                                                    .contains(
+                                                        _desController.text));
+                                            _messages.add(msg.toList());
+                                            _search.add(true);
+                                          }
+                                        });
+                                  }),
+                            ),
+                            controller: _desController,
+                          ),
+                        ),
+                      ],
                     );
                   }
                 }),
@@ -138,7 +297,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
             padding:
                 const EdgeInsets.only(left: 20, right: 20, bottom: 5, top: 5),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Container(
                     decoration: BoxDecoration(
@@ -340,67 +499,64 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                               });
                         },
                         child: const Text("تعیین قیمت"))),
-                Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.blue,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child:
-                        TextButton(onPressed: () {}, child: Text("تعیین مکان")))
               ],
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<Message>>(
-                stream: _messageDao.getAllMessage(),
-                builder: (context, msgSnapShot) {
-                  if (msgSnapShot.hasData && msgSnapShot.data != null) {
-                    _messages.add(msgSnapShot.data!);
-                    return StreamBuilder<List<Message>>(
-                        stream: _messages.stream,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData &&
-                              snapshot.data != null &&
-                              snapshot.data!.isNotEmpty) {
-                            return ListView.separated(
-                              itemCount: snapshot.data!.length,
-                              itemBuilder: (c, index) {
-                                return buildMessageWidget(
-                                    snapshot.data![index]);
-                              },
-                              separatorBuilder:
-                                  (BuildContext context, int index) {
-                                return const SizedBox(
-                                  height: 10,
+              child: StreamBuilder<String>(
+            stream: _currentLocation.stream,
+            builder: (c, snap) {
+              if (snap.hasData && snap.data != null) {
+                return StreamBuilder<List<Message>>(
+                    stream: _messageDao.getAllMessageByLocation(snap.data!),
+                    builder: (context, msgSnapShot) {
+                      if (msgSnapShot.hasData && msgSnapShot.data != null) {
+                        _messages.add(msgSnapShot.data!);
+                        return StreamBuilder<List<Message>>(
+                            stream: _messages.stream,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData &&
+                                  snapshot.data != null &&
+                                  snapshot.data!.isNotEmpty) {
+                                return ListView.separated(
+                                  itemCount: snapshot.data!.length,
+                                  itemBuilder: (c, index) {
+                                    return buildMessageWidget(
+                                        snapshot.data![index]);
+                                  },
+                                  separatorBuilder:
+                                      (BuildContext context, int index) {
+                                    return const SizedBox(
+                                      height: 10,
+                                    );
+                                  },
                                 );
-                              },
-                            );
-                          } else {
-                            return const Text(
-                              "آگهی ای وجود نداد!",
-                              style:
-                                  TextStyle(color: Colors.blue, fontSize: 17),
-                            );
-                          }
-                        });
-                  } else {
-                    return const Text(
-                      "آگهی ای وجود نداد!",
-                      style: TextStyle(color: Colors.blue, fontSize: 17),
-                    );
-                  }
-                }),
-          )
+                              } else {
+                                return const Text(
+                                  "آگهی ای وجود نداد!",
+                                  style: TextStyle(
+                                      color: Colors.blue, fontSize: 17),
+                                );
+                              }
+                            });
+                      } else {
+                        return const Text(
+                          "آگهی ای وجود نداد!",
+                          style: TextStyle(color: Colors.blue, fontSize: 17),
+                        );
+                      }
+                    });
+              }
+              return SizedBox.shrink();
+            },
+          ))
         ],
       ),
     );
   }
 
   Widget getImage(String messageId) {
-    return Container(
+    return SizedBox(
       height: 120,
       child: FutureBuilder<List<model.File>?>(
           future: _messageRepo.getMessageFile(messageId),
@@ -413,7 +569,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                 ),
               );
             } else {
-              return Icon(
+              return const Icon(
                 Icons.wallpaper_sharp,
                 size: 100,
               );
@@ -423,82 +579,89 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   }
 
   Widget buildMessageWidget(Message message) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 15),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.blue,
-            width: 1,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (c) {
+          return MessagePage(message);
+        }));
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.blue,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(5),
           ),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Stack(
-          children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: IconButton(
-                  icon: Icon(message.isPined
-                      ? CupertinoIcons.bookmark_fill
-                      : CupertinoIcons.bookmark),
-                  onPressed: () {
-                    _messageDao
-                        .saveMessage(message..isPined = !message.isPined);
-                    setState(() {});
-                  },
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: IconButton(
+                    icon: Icon(message.isPined
+                        ? CupertinoIcons.bookmark_fill
+                        : CupertinoIcons.bookmark),
+                    onPressed: () {
+                      _messageDao
+                          .saveMessage(message..isPined = !message.isPined);
+                      setState(() {});
+                    },
+                  ),
                 ),
               ),
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (message.messageType == MessageType.Req)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 5),
-                    child: Icon(
-                      Icons.wallpaper_sharp,
-                      size: 100,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (message.messageType == MessageType.Req)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 5),
+                      child: Icon(
+                        Icons.wallpaper_sharp,
+                        size: 100,
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.only(left: 5),
+                      child: getImage(message.fileUuid!),
                     ),
-                  )
-                else
                   Padding(
-                    padding: const EdgeInsets.only(left: 5),
-                    child: getImage(message.fileUuid!),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 30),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width / 3,
-                        child: Center(
-                          child: Text(
-                            message.caption,
-                            style: TextStyle(
-                              color: Colors.blue,
+                    padding: const EdgeInsets.only(top: 30),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width / 3,
+                          child: Center(
+                            child: Text(
+                              message.caption,
+                              style: TextStyle(
+                                color: Colors.blue,
+                              ),
+                              maxLines: 15,
                             ),
-                            maxLines: 15,
                           ),
                         ),
-                      ),
-                      Text(message.location),
-                      Row(
-                        children: [
-                          Text("تومان"),
-                          Text(message.value.toString()),
-                        ],
-                      ),
-                      Text(DateTime.fromMillisecondsSinceEpoch(message.time)
-                          .toString())
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ],
+                        Text(message.location),
+                        Row(
+                          children: [
+                            Text("تومان"),
+                            Text(message.value.toString()),
+                          ],
+                        ),
+                        Text(DateTime.fromMillisecondsSinceEpoch(message.time)
+                            .toString())
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
