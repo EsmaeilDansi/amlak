@@ -26,12 +26,14 @@ class Message {
   @HiveField(6)
   MessageType messageType;
 
-
   @HiveField(7)
   String? fileUuid;
 
   @HiveField(8)
   int measure;
+
+  @HiveField(9)
+  bool isPined;
 
   Message(
       {required this.value,
@@ -41,6 +43,7 @@ class Message {
       required this.time,
       required this.caption,
       required this.measure,
+      required this.isPined,
       required this.messageType,
       required this.location});
 }

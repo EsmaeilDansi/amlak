@@ -75,9 +75,13 @@ class HomePage extends StatelessWidget {
               return const SizedBox.shrink();
             }
             if (snapshot.data == page.announcementPage) {
-              return  AnnouncementPage();
+              return AnnouncementPage();
             } else if (snapshot.data == page.addMessage) {
-              return const NewMessagePage();
+              return NewMessagePage(
+                back: () {
+                  _pageSubject.add(page.announcementPage);
+                },
+              );
             } else if (snapshot.data == page.myPage) {
               return MyPage();
             } else {

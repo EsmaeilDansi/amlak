@@ -87,6 +87,7 @@ class MessageRepo {
             value: element["value"],
             caption: element["caption"],
             id: element["id"],
+            isPined: false,
             location: element["location"],
             time: element["create_time"],
             measure: element["measure"]),
