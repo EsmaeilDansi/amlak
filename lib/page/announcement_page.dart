@@ -44,6 +44,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   final _desController = TextEditingController();
   final _minValueController = TextEditingController();
   final _maxValueController = TextEditingController();
+  final BehaviorSubject<String> _valueSubject = BehaviorSubject.seeded("");
 
   final BehaviorSubject<bool> _search = BehaviorSubject.seeded(false);
 
@@ -299,6 +300,98 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      child: StreamBuilder<String>(
+                          stream: _valueSubject.stream,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData && snapshot.data != null) {
+                              return DropdownButton(
+                                  icon: const Padding(
+                                    padding: EdgeInsets.only(left: 20),
+                                    child: Icon(Icons.arrow_drop_down_outlined),
+                                  ),
+                                  style: const TextStyle(
+                                      fontSize: 16, color: Colors.black),
+                                  value: snapshot.data,
+                                  items: <DropdownMenuItem<String>>[
+                                    const DropdownMenuItem(
+                                      child: Text(
+                                        "همه آگهی ها",
+                                        style: TextStyle(
+                                          color: Colors.deepPurple,
+                                        ),
+                                      ),
+                                      value: "",
+                                    ),
+                                    DropdownMenuItem(
+                                      child: const Text(
+                                        "فروش",
+                                        style: TextStyle(
+                                          color: Colors.deepPurple,
+                                        ),
+                                      ),
+                                      value: MessageType.forosh.name,
+                                    ),
+                                    DropdownMenuItem(
+                                      child: const Text(
+                                        "خرید ",
+                                        style: TextStyle(
+                                          color: Colors.deepPurple,
+                                        ),
+                                      ),
+                                      value: MessageType.kharid.name,
+                                    ),
+                                    DropdownMenuItem(
+                                      child: const Text(
+                                        "رهن کردن ",
+                                        style: TextStyle(
+                                          color: Colors.deepPurple,
+                                        ),
+                                      ),
+                                      value: MessageType.rahn_kardan.name,
+                                    ),
+                                    DropdownMenuItem(
+                                      child: const Text(
+                                        "رهن دادن ",
+                                        style: TextStyle(
+                                          color: Colors.deepPurple,
+                                        ),
+                                      ),
+                                      value: MessageType.rahn_dadan.name,
+                                    ),
+                                    DropdownMenuItem(
+                                      child: const Text(
+                                        "اجاره کردن ",
+                                        style: TextStyle(
+                                          color: Colors.deepPurple,
+                                        ),
+                                      ),
+                                      value: MessageType.ajara_kardan.name,
+                                    ),
+                                    DropdownMenuItem(
+                                      child: const Text(
+                                        "اجاره دادن ",
+                                        style: TextStyle(
+                                          color: Colors.deepPurple,
+                                        ),
+                                      ),
+                                      value: MessageType.ajara_dadan.name,
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    _valueSubject.add(value.toString());
+                                  });
+                            } else {
+                              return const SizedBox.shrink();
+                            }
+                          }),
+                    ),
+                  ],
+                ),
                 Container(
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -507,30 +600,45 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
             stream: _currentLocation.stream,
             builder: (c, snap) {
               if (snap.hasData && snap.data != null) {
-                return StreamBuilder<List<Message>>(
-                    stream: _messageDao.getAllMessageByLocation(snap.data!),
-                    builder: (context, msgSnapShot) {
-                      if (msgSnapShot.hasData && msgSnapShot.data != null) {
-                        _messages.add(msgSnapShot.data!);
+                return StreamBuilder<String?>(
+                    stream: _valueSubject.stream,
+                    builder: (c, msgType) {
+                      if (msgType.hasData && msgType.data != null) {
                         return StreamBuilder<List<Message>>(
-                            stream: _messages.stream,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData &&
-                                  snapshot.data != null &&
-                                  snapshot.data!.isNotEmpty) {
-                                return ListView.separated(
-                                  itemCount: snapshot.data!.length,
-                                  itemBuilder: (c, index) {
-                                    return buildMessageWidget(
-                                        snapshot.data![index]);
-                                  },
-                                  separatorBuilder:
-                                      (BuildContext context, int index) {
-                                    return const SizedBox(
-                                      height: 10,
-                                    );
-                                  },
-                                );
+                            stream: _messageDao.getAllMessageByLocationAndType(
+                                snap.data!, msgType.data!),
+                            builder: (context, msgSnapShot) {
+                              if (msgSnapShot.hasData &&
+                                  msgSnapShot.data != null) {
+                                _messages.add(msgSnapShot.data!);
+                                return StreamBuilder<List<Message>>(
+                                    stream: _messages.stream,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData &&
+                                          snapshot.data != null &&
+                                          snapshot.data!.isNotEmpty) {
+                                        return ListView.separated(
+                                          itemCount: snapshot.data!.length,
+                                          itemBuilder: (c, index) {
+                                            return buildMessageWidget(
+                                                snapshot.data![index]);
+                                          },
+                                          separatorBuilder:
+                                              (BuildContext context,
+                                                  int index) {
+                                            return const SizedBox(
+                                              height: 10,
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        return const Text(
+                                          "آگهی ای وجود نداد!",
+                                          style: TextStyle(
+                                              color: Colors.blue, fontSize: 17),
+                                        );
+                                      }
+                                    });
                               } else {
                                 return const Text(
                                   "آگهی ای وجود نداد!",
@@ -539,15 +647,11 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                 );
                               }
                             });
-                      } else {
-                        return const Text(
-                          "آگهی ای وجود نداد!",
-                          style: TextStyle(color: Colors.blue, fontSize: 17),
-                        );
                       }
+                      return const Text("آگهی وجود ندارد.");
                     });
               }
-              return SizedBox.shrink();
+              return const Text("آگهی وجود ندارد.");
             },
           ))
         ],
@@ -581,9 +685,10 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   Widget buildMessageWidget(Message message) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (c) {
-          return MessagePage(message);
-        }));
+        _messageRepo.deleteMessage(message);
+        // Navigator.push(context, MaterialPageRoute(builder: (c) {
+        //   return MessagePage(message);
+        // }));
       },
       child: Padding(
         padding: const EdgeInsets.only(left: 20, right: 15),
@@ -617,7 +722,9 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (message.messageType == MessageType.Req)
+                  if (message.messageType == MessageType.kharid ||
+                      message.messageType == MessageType.rahn_kardan ||
+                      message.messageType == MessageType.ajara_kardan)
                     const Padding(
                       padding: EdgeInsets.only(left: 5),
                       child: Icon(

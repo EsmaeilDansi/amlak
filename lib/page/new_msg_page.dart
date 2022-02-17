@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:amlak_client/db/dao/accountDao.dart';
+import 'package:amlak_client/db/entity/account.dart';
 import 'package:amlak_client/db/entity/message.dart';
 import 'package:amlak_client/db/entity/message_type.dart';
 import 'package:amlak_client/repo/messageRepo.dart';
@@ -23,10 +25,9 @@ class NewMessagePage extends StatefulWidget {
 
 class _NewMessagePageState extends State<NewMessagePage> {
   final BehaviorSubject<MessageType> _valueSubject =
-      BehaviorSubject.seeded(MessageType.Sale);
+      BehaviorSubject.seeded(MessageType.forosh);
   final List<String> _selectedFilePath = [];
   final BehaviorSubject<String> _currentLocation = BehaviorSubject.seeded("");
-  final _positionFormKey = GlobalKey<FormState>();
   final _captionFormKey = GlobalKey<FormState>();
   final _valueFormKey = GlobalKey<FormState>();
   final _measureFormKey = GlobalKey<FormState>();
@@ -36,6 +37,8 @@ class _NewMessagePageState extends State<NewMessagePage> {
   final _captionController = TextEditingController();
   final _locationServices = GetIt.I.get<LocationServices>();
   final _provinces = [];
+  final _accountDao = GetIt.I.get<AccountDao>();
+  final _textController = TextEditingController();
 
   @override
   void initState() {
@@ -78,22 +81,58 @@ class _NewMessagePageState extends State<NewMessagePage> {
                             items: const <DropdownMenuItem<MessageType>>[
                               DropdownMenuItem(
                                 child: Text(
-                                  "آگهی فروش",
+                                  "فروش",
                                   style: TextStyle(
                                       color: Colors.deepPurple,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                value: MessageType.Sale,
+                                value: MessageType.forosh,
                               ),
                               DropdownMenuItem(
                                 child: Text(
-                                  "آگهی درخواست",
+                                  "خرید ",
                                   style: TextStyle(
                                       color: Colors.deepPurple,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                value: MessageType.Req,
-                              )
+                                value: MessageType.kharid,
+                              ),
+                              DropdownMenuItem(
+                                child: Text(
+                                  "رهن کردن ",
+                                  style: TextStyle(
+                                      color: Colors.deepPurple,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                value: MessageType.rahn_kardan,
+                              ),
+                              DropdownMenuItem(
+                                child: Text(
+                                  "رهن دادن ",
+                                  style: TextStyle(
+                                      color: Colors.deepPurple,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                value: MessageType.rahn_dadan,
+                              ),
+                              DropdownMenuItem(
+                                child: Text(
+                                  "اجاره کردن ",
+                                  style: TextStyle(
+                                      color: Colors.deepPurple,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                value: MessageType.ajara_kardan,
+                              ),
+                              DropdownMenuItem(
+                                child: Text(
+                                  "اجاره دادن ",
+                                  style: TextStyle(
+                                      color: Colors.deepPurple,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                value: MessageType.ajara_dadan,
+                              ),
                             ],
                             onChanged: (value) {
                               _valueSubject.add(value as MessageType);
@@ -120,7 +159,9 @@ class _NewMessagePageState extends State<NewMessagePage> {
                     stream: _valueSubject.stream,
                     builder: (c, snapshot) {
                       if (snapshot.hasData && snapshot.data != null) {
-                        if (snapshot.data == MessageType.Sale) {
+                        if (snapshot.data == MessageType.ajara_dadan ||
+                            snapshot.data == MessageType.forosh ||
+                            snapshot.data == MessageType.rahn_dadan) {
                           int w = MediaQuery.of(context).size.width.toInt();
                           return SizedBox(
                               height: w > 500 && _selectedFilePath.length > 4 ||
@@ -396,36 +437,82 @@ class _NewMessagePageState extends State<NewMessagePage> {
                 "ثبت در خواست",
                 style: TextStyle(color: Colors.blue, fontSize: 17),
               )),
-              onTap: () {
+              onTap: () async {
                 if (_measureFormKey.currentState?.validate() ?? false) {
                   if (_valueFormKey.currentState?.validate() ?? false) {
                     if (_captionFormKey.currentState?.validate() ?? false) {
-                      _messageRepo.sendMessage(
-                          Message(
-                            owner_id: "123456",
-                            fileUuid: "123456" +
-                                DateTime.now()
-                                    .millisecondsSinceEpoch
-                                    .toString(),
-                            caption: _captionController.text,
-                            isPined: false,
-                            time: DateTime.now().millisecondsSinceEpoch,
-                            messageType: _valueSubject.value,
-                            measure: int.parse(_measureController.text),
-                            value: int.parse(_valueController.text),
-                            location: _currentLocation.value,
-                          ),
-                          _selectedFilePath);
-                    }
-                    FToast fToast = FToast();
-                    fToast.init(context);
+                      var account = await _accountDao.getAccount();
+                      if (account != null) {
+                        _sendMessaeg(account);
+                      } else {
+                        showDialog(
+                            context: context,
+                            builder: (c) {
+                              return AlertDialog(
+                                title: const Center(
+                                  child: Text(
+                                    "ابتدا باید لاگین کنید.",
+                                    style: TextStyle(
+                                        color: Colors.deepPurple, fontSize: 20),
+                                  ),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextField(
+                                        maxLength: 11,
+                                        maxLengthEnforcement:
+                                            MaxLengthEnforcement.enforced,
+                                        controller: _textController,
+                                        decoration: const InputDecoration(
+                                            suffixIcon: Padding(
+                                              padding: EdgeInsets.only(
+                                                  top: 20, left: 25),
+                                              child: Text(
+                                                "*",
+                                                style: TextStyle(
+                                                    color: Colors.red),
+                                              ),
+                                            ),
+                                            border: OutlineInputBorder(),
+                                            hintText: "09121234567",
+                                            labelStyle: TextStyle(
+                                                color: Colors.cyanAccent),
+                                            labelText: "شماره تلفن")),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.blue,
+                                          width: 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: TextButton(
+                                          onPressed: () {
+                                            if (_textController
+                                                    .text.isNotEmpty &&
+                                                _textController.text.length ==
+                                                    11) {
+                                              _accountDao.saveAccount(Account(
+                                                  int.parse(
+                                                      _textController.text)));
+                                              _sendMessaeg(Account(int.parse(
+                                                  _textController.text)));
+                                              Navigator.pop(context);
 
-                    fToast.showToast(
-                      child: const Text("آگهی شما ثبت شد."),
-                      gravity: ToastGravity.BOTTOM,
-                      toastDuration: const Duration(seconds: 2),
-                    );
-                    widget.back();
+                                            }
+                                          },
+                                          child: const Text("ثبت نام")),
+                                    )
+                                  ],
+                                ),
+                              );
+                            });
+                      }
+                    }
                   }
                 }
               },
@@ -434,6 +521,33 @@ class _NewMessagePageState extends State<NewMessagePage> {
         ],
       ),
     );
+  }
+
+  void _sendMessaeg(Account account) {
+    _messageRepo.sendMessage(
+        Message(
+          owner_id: account.phoneNumber.toString(),
+          fileUuid: account.phoneNumber.toString() +
+              DateTime.now().millisecondsSinceEpoch.toString(),
+          caption: _captionController.text,
+          isPined: false,
+          ownerPhoneNumber: account.phoneNumber,
+          time: DateTime.now().millisecondsSinceEpoch,
+          messageType: _valueSubject.value,
+          measure: int.parse(_measureController.text),
+          value: int.parse(_valueController.text),
+          location: _currentLocation.value,
+        ),
+        _selectedFilePath);
+    FToast fToast = FToast();
+    fToast.init(context);
+
+    fToast.showToast(
+      child: const Text("آگهی شما ثبت شد."),
+      gravity: ToastGravity.BOTTOM,
+      toastDuration: const Duration(seconds: 2),
+    );
+    widget.back();
   }
 
   Widget picturePage() {

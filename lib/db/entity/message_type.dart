@@ -7,7 +7,15 @@ part 'message_type.g.dart';
 @HiveType(typeId: 7)
 enum MessageType {
   @HiveField(0)
-  Req,
+  ajara_dadan,
   @HiveField(1)
-  Sale,
+  rahn_dadan,
+  @HiveField(2)
+  forosh,
+  @HiveField(3)
+  kharid,
+  @HiveField(4)
+  ajara_kardan,
+  @HiveField(5)
+  rahn_kardan
 }

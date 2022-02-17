@@ -26,6 +26,7 @@ class MessageAdapter extends TypeAdapter<Message> {
       measure: fields[8] as int,
       isPined: fields[9] as bool,
       messageType: fields[6] as MessageType,
+      ownerPhoneNumber: fields[10] as int,
       location: fields[4] as String,
     );
   }
@@ -33,7 +34,7 @@ class MessageAdapter extends TypeAdapter<Message> {
   @override
   void write(BinaryWriter writer, Message obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class MessageAdapter extends TypeAdapter<Message> {
       ..writeByte(8)
       ..write(obj.measure)
       ..writeByte(9)
-      ..write(obj.isPined);
+      ..write(obj.isPined)
+      ..writeByte(10)
+      ..write(obj.ownerPhoneNumber);
   }
 
   @override

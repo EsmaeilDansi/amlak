@@ -3,12 +3,19 @@ import 'package:amlak_client/db/entity/account.dart';
 import 'package:amlak_client/page/pinnedPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 
-class MyPage extends StatelessWidget {
+class MyPage extends StatefulWidget {
   MyPage({Key? key}) : super(key: key);
 
-  var _accountDao = GetIt.I.get<AccountDao>();
+  @override
+  State<MyPage> createState() => _MyPageState();
+}
+
+class _MyPageState extends State<MyPage> {
+  final _accountDao = GetIt.I.get<AccountDao>();
+  final _textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -47,24 +54,66 @@ class MyPage extends StatelessWidget {
                               context: context,
                               builder: (c) {
                                 return AlertDialog(
-                                  content: TextField(
-                                    decoration:
-                                        buildInputDecoration("شماره تلفن"),
+                                  title: const Text(
+                                    "ثبت نام",
+                                    style: TextStyle(
+                                        color: Colors.deepPurple, fontSize: 28),
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text("لغو"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        //todo
-                                      },
-                                      child: const Text("ورود"),
-                                    ),
-                                  ],
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextField(
+                                          maxLength: 11,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter
+                                                .digitsOnly
+                                          ],
+                                          maxLengthEnforcement:
+                                              MaxLengthEnforcement.enforced,
+                                          controller: _textController,
+                                          decoration: const InputDecoration(
+                                              suffixIcon: Padding(
+                                                padding: EdgeInsets.only(
+                                                    top: 20, left: 25),
+                                                child: Text(
+                                                  "*",
+                                                  style: TextStyle(
+                                                      color: Colors.red),
+                                                ),
+                                              ),
+                                              border: OutlineInputBorder(),
+                                              hintText: "09121234567",
+                                              labelStyle: TextStyle(
+                                                  color: Colors.cyanAccent),
+                                              labelText: "شماره تلفن")),
+                                      const SizedBox(
+                                        height: 20,
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.blue,
+                                            width: 1,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: TextButton(
+                                            onPressed: () {
+                                              if (_textController
+                                                      .text.isNotEmpty &&
+                                                  _textController.text.length ==
+                                                      11) {
+                                                _accountDao.saveAccount(Account(
+                                                    int.parse(
+                                                        _textController.text)));
+                                                setState(() {});
+                                              }
+                                            },
+                                            child: const Text("ثبت نام")),
+                                      )
+                                    ],
+                                  ),
                                 );
                               });
                         },
@@ -77,11 +126,17 @@ class MyPage extends StatelessWidget {
               }),
           Divider(),
           Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.only(left: 8, right: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(children: [Icon(Icons.bookmark), Text("نشان شده ها")]),
+                Row(children: const [
+                  Icon(
+                    CupertinoIcons.bookmark_fill,
+                    color: Colors.deepPurple,
+                  ),
+                  Text("نشان شده ها")
+                ]),
                 IconButton(
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (c) {
@@ -93,11 +148,17 @@ class MyPage extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.only(left: 10, right: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(children: [Icon(Icons.storage), Text("آگهی های من")]),
+                Row(children: [
+                  Icon(
+                    CupertinoIcons.doc_plaintext,
+                    color: Colors.deepPurple,
+                  ),
+                  Text("آگهی های من")
+                ]),
                 Icon(Icons.arrow_forward_ios)
               ],
             ),

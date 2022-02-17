@@ -14,22 +14,42 @@ class MessageTypeAdapter extends TypeAdapter<MessageType> {
   MessageType read(BinaryReader reader) {
     switch (reader.readByte()) {
       case 0:
-        return MessageType.Req;
+        return MessageType.ajara_dadan;
       case 1:
-        return MessageType.Sale;
+        return MessageType.rahn_dadan;
+      case 2:
+        return MessageType.forosh;
+      case 3:
+        return MessageType.kharid;
+      case 4:
+        return MessageType.ajara_kardan;
+      case 5:
+        return MessageType.rahn_kardan;
       default:
-        return MessageType.Req;
+        return MessageType.ajara_dadan;
     }
   }
 
   @override
   void write(BinaryWriter writer, MessageType obj) {
     switch (obj) {
-      case MessageType.Req:
+      case MessageType.ajara_dadan:
         writer.writeByte(0);
         break;
-      case MessageType.Sale:
+      case MessageType.rahn_dadan:
         writer.writeByte(1);
+        break;
+      case MessageType.forosh:
+        writer.writeByte(2);
+        break;
+      case MessageType.kharid:
+        writer.writeByte(3);
+        break;
+      case MessageType.ajara_kardan:
+        writer.writeByte(4);
+        break;
+      case MessageType.rahn_kardan:
+        writer.writeByte(5);
         break;
     }
   }

@@ -35,6 +35,9 @@ class Message {
   @HiveField(9)
   bool isPined;
 
+  @HiveField(10)
+  int ownerPhoneNumber;
+
   Message(
       {required this.value,
       this.id,
@@ -45,5 +48,6 @@ class Message {
       required this.measure,
       required this.isPined,
       required this.messageType,
+      required this.ownerPhoneNumber,
       required this.location});
 }

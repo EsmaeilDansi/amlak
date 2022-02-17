@@ -17,20 +17,6 @@ class MessageDao {
     return box.values.firstWhere((element) => element.id == uuid);
   }
 
-  Future<List<Message>?> getReqMessage() async {
-    var box = await _open();
-    return box.values
-        .where((element) => element.messageType == MessageType.Req)
-        .toList();
-  }
-
-  Future<List<Message>?> getSaleMessage() async {
-    var box = await _open();
-    return box.values
-        .where((element) => element.messageType == MessageType.Sale)
-        .toList();
-  }
-
   Stream<List<Message>> getAllMessage() async* {
     try {
       var box = await _open();
@@ -53,15 +39,20 @@ class MessageDao {
         .toList());
   }
 
-  Stream<List<Message>> getAllMessageByLocation(String location) async* {
+  Stream<List<Message>> getAllMessageByLocationAndType(
+      String location, String type) async* {
     var box = await _open();
 
     yield sorted(box.values
-        .where((element) => element.location.contains(location))
+        .where((element) =>
+            element.location.contains(location) &&
+            element.messageType.name.contains(type))
         .toList());
 
     yield* box.watch().map((event) => sorted(box.values
-        .where((element) => element.location.contains(location))
+        .where((element) =>
+            element.location.contains(location) &&
+            element.messageType.name.contains(type))
         .toList()));
   }
 
@@ -77,8 +68,18 @@ class MessageDao {
         box.values.where((element) => element.caption.contains(text)).toList());
   }
 
-  Future<List<Message>?>getPinnedMessage() async {
+  Future<List<Message>?> getPinnedMessage() async {
     var box = await _open();
     return sorted(box.values.where((element) => element.isPined).toList());
+  }
+
+  Future<Message?> getLastMessage() async {
+    var box = await _open();
+    return sorted(box.values.toList()).first;
+  }
+
+  void deleteMessage(Message message) async {
+    var box = await _open();
+    box.delete(message.id);
   }
 }

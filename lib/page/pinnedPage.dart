@@ -29,19 +29,21 @@ class _PinnedPageState extends State<PinnedPage> {
       body: FutureBuilder<List<Message>?>(
         future: _messageDao.getPinnedMessage(),
         builder: (c, d) {
-          if(d.hasData && d.data!= null && d.data!.isNotEmpty) {
-            return Expanded(
-              child: ListView.builder(shrinkWrap: true,itemBuilder: (c, index) {
-              return buildMessageWidget(d.data![index]);
-          }),
-            );
-          }else{
-            return Center(child: Text("شما هیچ آگهی نشان شده ندارید."));
+          if (d.hasData && d.data != null && d.data!.isNotEmpty) {
+            return ListView.builder(
+                shrinkWrap: true,
+                itemCount: d.data!.length,
+                itemBuilder: (c, index) {
+                  return buildMessageWidget(d.data![index]);
+                });
+          } else {
+            return const Center(child: Text("شما هیچ آگهی نشان شده ندارید."));
           }
         },
       ),
     );
   }
+
   Widget buildMessageWidget(Message message) {
     return GestureDetector(
       onTap: () {
@@ -81,7 +83,9 @@ class _PinnedPageState extends State<PinnedPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (message.messageType == MessageType.Req)
+                  if (message.messageType == MessageType.kharid ||
+                      message.messageType == MessageType.rahn_kardan ||
+                      message.messageType == MessageType.ajara_kardan)
                     const Padding(
                       padding: EdgeInsets.only(left: 5),
                       child: Icon(
@@ -130,6 +134,7 @@ class _PinnedPageState extends State<PinnedPage> {
       ),
     );
   }
+
   Widget getImage(String messageId) {
     return SizedBox(
       height: 120,

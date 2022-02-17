@@ -35,7 +35,7 @@ class MessageRepo {
   }
 
   Future<void> sendMessage(Message message, List<String> filesPath) async {
-    if (message.messageType == MessageType.Req) {
+    if (filesPath.isEmpty) {
       _sendMessage(message);
     } else {
       try {
@@ -50,47 +50,63 @@ class MessageRepo {
   }
 
   Future<void> _sendMessage(Message message) async {
-    var res = await post(
-      Uri.parse(
-        '$BASE_URI/setPost/',
-      ),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(<String, String>{
-        'id': '0',
-        'value': message.value.toString(),
-        'file_uuid': message.fileUuid!,
-        'owner_id': message.owner_id,
-        'caption': message.caption,
-        'location': message.location,
-        'time': message.time.toString(),
-        'measure': message.measure.toString(),
-        'type': message.messageType.toString()
-      }),
-    );
-    _messageDao.saveMessage(message..id = res.body);
+    try {
+      var res = await post(
+        Uri.parse(
+          '$BASE_URI/setPost/',
+        ),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(<String, String>{
+          'id': '0',
+          'value': message.value.toString(),
+          'file_uuid': message.fileUuid!,
+          'owner_id': message.owner_id,
+          'caption': message.caption,
+          'location': message.location,
+          'create_time': message.time.toString(),
+          'phone_number': message.ownerPhoneNumber.toString(),
+          'measure': message.measure.toString(),
+          'type': message.messageType.toString()
+        }),
+      );
+      print(res.body);
+      _messageDao.saveMessage(message..id = res.body);
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  deleteMessage(Message message)async {
+    var res  = await get(Uri.parse("$BASE_URI/deleteMessage/${message.id}"));
+    if(res.statusCode ==200){
+      _messageDao.deleteMessage(message);
+    }
+
   }
 
   Future<void> fetchMessage() async {
     _fetchMessage();
   }
 
-  Future<List<Message>?> _fetchMessage() async {
-    var res = await get(Uri.parse("$BASE_URI/getAllMessage/"), headers: {'Content-Type': 'application/json'},);
-   // print(res.body);
+  Future<void> _fetchMessage() async {
+    Message? lastMsg = await _messageDao.getLastMessage();
+    String time = lastMsg != null ? lastMsg.time.toString() : "0";
+    var res = await get(
+      Uri.parse('$BASE_URI/getAllMessage/$time'),
+    );
     List<dynamic> messages = jsonDecode(res.body);
     for (var element in messages) {
-     print(utf8.decode(element["location"].toString().codeUnits));
-
       _messageDao.saveMessage(
         Message(
             owner_id: element["owner_id"] ?? "",
             messageType: getMsgType(element["type"]),
             fileUuid: element["file_uuid"],
             value: element["value"],
+            ownerPhoneNumber: element["phone_number"],
             caption: utf8.decode(element["caption"].toString().codeUnits),
-            id: element["id"],
+            id: element["id"].toString(),
             isPined: false,
-            location:  utf8.decode(element["location"].toString().codeUnits),
+            location: utf8.decode(element["location"].toString().codeUnits),
             time: element["create_time"],
             measure: element["measure"]),
       );
@@ -98,16 +114,24 @@ class MessageRepo {
   }
 
   MessageType getMsgType(String type) {
-    if (type.contains("req")) {
-      return MessageType.Req;
+    if (type.contains("forosh")) {
+      return MessageType.forosh;
+    } else if (type.contains("kharid")) {
+      return MessageType.kharid;
+    } else if (type.contains("ajara_dadan")) {
+      return MessageType.ajara_dadan;
+    } else if (type.contains("ajara_kardan")) {
+      return MessageType.ajara_kardan;
+    } else if (type.contains("rahn_dadan")) {
+      return MessageType.rahn_dadan;
     } else {
-      return MessageType.Sale;
+      return MessageType.rahn_kardan;
     }
   }
 
   Future<String?> downloadFile(String uuid) async {
     try {
-      var res = await get(Uri.parse("$BASE_URI/$uuid"));
+      var res = await get(Uri.parse("$BASE_URI/getFile/$uuid"));
       var path = (await _localPath) + "/$uuid";
       final file = await File(path);
       file.writeAsBytesSync(res.bodyBytes);
