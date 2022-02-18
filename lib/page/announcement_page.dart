@@ -278,7 +278,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                       onPressed: () {
                         _messageRepo.fetchMessage();
                       },
-                      icon: Icon(
+                      icon: const Icon(
                         CupertinoIcons.arrow_counterclockwise_circle,
                         color: Colors.deepPurple,
                         size: 35,
@@ -426,8 +426,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                                   border: OutlineInputBorder(),
                                                   labelStyle: TextStyle(
                                                       fontSize: 12,
-                                                      color:
-                                                          Colors.cyanAccent)),
+                                                      color: Colors.blue)),
                                             ),
                                           ),
                                           const SizedBox(
@@ -445,8 +444,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                                   border: OutlineInputBorder(),
                                                   labelStyle: TextStyle(
                                                       fontSize: 12,
-                                                      color:
-                                                          Colors.cyanAccent)),
+                                                      color: Colors.blue)),
                                             ),
                                           )
                                         ],
@@ -475,12 +473,15 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                                           .text.isNotEmpty
                                                       ? _minValueController.text
                                                       : "1000000000000000000");
-                                              var msg = _messages.value
-                                                  .where((element) =>
-                                                      min <= element.measure &&
-                                                      element.measure <= max)
-                                                  .toList();
-                                              _messages.add(msg);
+                                              List<Message> filtered = [];
+                                              for (var element
+                                                  in _messages.value) {
+                                                if (element.measure >= min &&
+                                                    element.measure <= max) {
+                                                  filtered.add(element);
+                                                }
+                                              }
+                                              _messages.add(filtered);
                                               _searchState.add(
                                                   "نتیجه جستجو براساس محدودسازی متراژ");
                                               _minValueController.clear();
@@ -585,12 +586,15 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                                           .text.isNotEmpty
                                                       ? _minValueController.text
                                                       : "1000000000000000000");
-                                              var msg = _messages.value
-                                                  .where((element) =>
-                                                      min <= element.value &&
-                                                      element.value <= max)
-                                                  .toList();
-                                              _messages.add(msg);
+                                              List<Message> filtered = [];
+                                              for (var element
+                                                  in _messages.value) {
+                                                if (element.measure >= min &&
+                                                    element.measure <= max) {
+                                                  filtered.add(element);
+                                                }
+                                              }
+                                              _messages.add(filtered);
                                               _searchState.add(
                                                   "نتیجه جستجو براساس محدودسازی قیمت");
                                               _maxValueController.clear();

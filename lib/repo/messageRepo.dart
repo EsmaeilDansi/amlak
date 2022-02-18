@@ -25,11 +25,6 @@ class MessageRepo {
   final _messageDao = GetIt.I.get<MessageDao>();
   final _fileDao = GetIt.I.get<FileDao>();
 
-  initBaseUri()async{
-    final ipv4 = await Ipify.ipv4();
-    print(ipv4);
-  }
-
   Future<String> get _localPath async {
     if (Platform.isWindows ||
         await GetIt.I.get<PermissionServices>().getStoragePermission()) {
@@ -110,11 +105,12 @@ class MessageRepo {
     }
   }
 
-  Future<void> fetchMessage() async {
+  fetchMessage()  {
     _fetchMessage();
   }
 
   Future<void> _fetchMessage() async {
+
     Message? lastMsg = await _messageDao.getLastMessage();
     String time = lastMsg != null ? lastMsg.time.toString() : "0";
     var res = await get(
