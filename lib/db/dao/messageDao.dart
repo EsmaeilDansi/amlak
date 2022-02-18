@@ -12,9 +12,9 @@ class MessageDao {
     box.put(message.id.toString(), message);
   }
 
-  Future<Message?> getMessage(String uuid) async {
+  Future<Message?> getMessage(String id) async {
     var box = await _open();
-    return box.values.firstWhere((element) => element.id == uuid);
+    return box.get(id);
   }
 
   Stream<List<Message>> getAllMessage() async* {
@@ -74,12 +74,23 @@ class MessageDao {
   }
 
   Future<Message?> getLastMessage() async {
-    var box = await _open();
-    return sorted(box.values.toList()).first;
+    try {
+      var box = await _open();
+      return sorted(box.values.toList()).first;
+    } catch (e) {
+      return null;
+    }
   }
 
   void deleteMessage(Message message) async {
     var box = await _open();
     box.delete(message.id);
+  }
+
+  Future<List<Message>>? getMyMessage(String p) async {
+    var box = await _open();
+    return sorted(box.values
+        .where((element) => element.ownerPhoneNumber.toString().contains(p))
+        .toList());
   }
 }

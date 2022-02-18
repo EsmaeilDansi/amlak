@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:amlak_client/db/dao/accountDao.dart';
@@ -15,9 +16,7 @@ import 'package:get_it/get_it.dart';
 import 'package:rxdart/rxdart.dart';
 
 class NewMessagePage extends StatefulWidget {
-  final Function back;
-
-  const NewMessagePage({Key? key, required this.back}) : super(key: key);
+  const NewMessagePage({Key? key}) : super(key: key);
 
   @override
   State<NewMessagePage> createState() => _NewMessagePageState();
@@ -57,7 +56,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ثبت  آگهی "),
+        title: const Text("ثبت  آگهی ",),backgroundColor: Colors.deepPurple
       ),
       body: Column(
         children: [
@@ -163,23 +162,64 @@ class _NewMessagePageState extends State<NewMessagePage> {
                             snapshot.data == MessageType.forosh ||
                             snapshot.data == MessageType.rahn_dadan) {
                           int w = MediaQuery.of(context).size.width.toInt();
-                          return SizedBox(
-                              height: w > 500 && _selectedFilePath.length > 4 ||
-                                      w < 500 && _selectedFilePath.length > 2
-                                  ? 200
-                                  : 140,
-                              child: picturePage());
+                          return _selectedFilePath.isNotEmpty
+                              ? SizedBox(
+                                  height:
+                                      w > 500 && _selectedFilePath.length > 4 ||
+                                              w < 500 &&
+                                                  _selectedFilePath.length > 2
+                                          ? 200
+                                          : 140,
+                                  child: picturePage())
+                              : Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () async {
+                                        var res = await FilePicker.platform
+                                            .pickFiles(
+                                                type: FileType.image,
+                                                allowMultiple: true);
+                                        if (res != null) {
+                                          for (var element in res.files) {
+                                            _selectedFilePath
+                                                .add(element.path!);
+                                          }
+                                          setState(() {});
+                                        }
+                                      },
+                                      child: const Icon(
+                                        CupertinoIcons.camera_circle,
+                                        color: Colors.deepPurple,
+                                        size: 90,
+                                      ),
+                                    ),
+                                    Center(child: Text("انتخاب عکس"))
+                                  ],
+                                );
                         } else {
-                          return const SizedBox.shrink();
+                          return const SizedBox(
+                            width: 200,
+                            height: 200,
+                            child: Image(
+                                image: AssetImage('assets/ic_launcher.png')),
+                          );
                         }
                       } else {
-                        return const SizedBox.shrink();
+                        return const SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: Image(
+                              image: AssetImage('assets/ic_launcher.png')),
+                        );
                       }
                     }),
                 Padding(
                   padding: const EdgeInsets.only(
                     left: 8,
-                    top: 8,
+                    top: 50,
                     right: 10,
                   ),
                   child: Form(
@@ -422,100 +462,104 @@ class _NewMessagePageState extends State<NewMessagePage> {
           const SizedBox(
             height: 10,
           ),
-          Container(
-            width: 120,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.blue,
-                width: 1,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 40),
+            child: Container(
+              width: 120,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.blue,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(5),
               ),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: GestureDetector(
-              child: const Center(
-                  child: Text(
-                "ثبت در خواست",
-                style: TextStyle(color: Colors.blue, fontSize: 17),
-              )),
-              onTap: () async {
-                if (_measureFormKey.currentState?.validate() ?? false) {
-                  if (_valueFormKey.currentState?.validate() ?? false) {
-                    if (_captionFormKey.currentState?.validate() ?? false) {
-                      var account = await _accountDao.getAccount();
-                      if (account != null) {
-                        _sendMessaeg(account);
-                      } else {
-                        showDialog(
-                            context: context,
-                            builder: (c) {
-                              return AlertDialog(
-                                title: const Center(
-                                  child: Text(
-                                    "ابتدا باید لاگین کنید.",
-                                    style: TextStyle(
-                                        color: Colors.deepPurple, fontSize: 20),
-                                  ),
-                                ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    TextField(
-                                        maxLength: 11,
-                                        maxLengthEnforcement:
-                                            MaxLengthEnforcement.enforced,
-                                        controller: _textController,
-                                        decoration: const InputDecoration(
-                                            suffixIcon: Padding(
-                                              padding: EdgeInsets.only(
-                                                  top: 20, left: 25),
-                                              child: Text(
-                                                "*",
-                                                style: TextStyle(
-                                                    color: Colors.red),
-                                              ),
-                                            ),
-                                            border: OutlineInputBorder(),
-                                            hintText: "09121234567",
-                                            labelStyle: TextStyle(
-                                                color: Colors.cyanAccent),
-                                            labelText: "شماره تلفن")),
-                                    const SizedBox(
-                                      height: 20,
+              child: GestureDetector(
+                child: const Center(
+                    child: Text(
+                  "ثبت در خواست",
+                  style: TextStyle(color: Colors.blue, fontSize: 17),
+                )),
+                onTap: () async {
+                  if (_measureFormKey.currentState?.validate() ?? false) {
+                    if (_valueFormKey.currentState?.validate() ?? false) {
+                      if (_captionFormKey.currentState?.validate() ?? false) {
+                        var account = await _accountDao.getAccount();
+                        if (account != null) {
+                          _sendMessage(account);
+                        } else {
+                          showDialog(
+                              context: context,
+                              builder: (c) {
+                                return AlertDialog(
+                                  title: const Center(
+                                    child: Text(
+                                      "ابتدا باید لاگین کنید.",
+                                      style: TextStyle(
+                                          color: Colors.deepPurple,
+                                          fontSize: 20),
                                     ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.blue,
-                                          width: 1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextField(
+                                          maxLength: 11,
+                                          maxLengthEnforcement:
+                                              MaxLengthEnforcement.enforced,
+                                          controller: _textController,
+                                          decoration: const InputDecoration(
+                                              suffixIcon: Padding(
+                                                padding: EdgeInsets.only(
+                                                    top: 20, left: 25),
+                                                child: Text(
+                                                  "*",
+                                                  style: TextStyle(
+                                                      color: Colors.red),
+                                                ),
+                                              ),
+                                              border: OutlineInputBorder(),
+                                              hintText: "09121234567",
+                                              labelStyle: TextStyle(
+                                                  color: Colors.cyanAccent),
+                                              labelText: "شماره تلفن")),
+                                      const SizedBox(
+                                        height: 20,
                                       ),
-                                      child: TextButton(
-                                          onPressed: () {
-                                            if (_textController
-                                                    .text.isNotEmpty &&
-                                                _textController.text.length ==
-                                                    11) {
-                                              _accountDao.saveAccount(Account(
-                                                  int.parse(
-                                                      _textController.text)));
-                                              _sendMessaeg(Account(int.parse(
-                                                  _textController.text)));
-                                              Navigator.pop(context);
-
-                                            }
-                                          },
-                                          child: const Text("ثبت نام")),
-                                    )
-                                  ],
-                                ),
-                              );
-                            });
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.blue,
+                                            width: 1,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: TextButton(
+                                            onPressed: () {
+                                              if (_textController
+                                                      .text.isNotEmpty &&
+                                                  _textController.text.length ==
+                                                      11) {
+                                                _accountDao.saveAccount(Account(
+                                                    int.parse(
+                                                        _textController.text)));
+                                                _sendMessage(Account(int.parse(
+                                                    _textController.text)));
+                                                Navigator.pop(context);
+                                              }
+                                            },
+                                            child: const Text("ثبت نام")),
+                                      )
+                                    ],
+                                  ),
+                                );
+                              });
+                        }
                       }
                     }
                   }
-                }
-              },
+                },
+              ),
             ),
           )
         ],
@@ -523,7 +567,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
     );
   }
 
-  void _sendMessaeg(Account account) {
+  void _sendMessage(Account account) {
     _messageRepo.sendMessage(
         Message(
           owner_id: account.phoneNumber.toString(),
@@ -543,11 +587,16 @@ class _NewMessagePageState extends State<NewMessagePage> {
     fToast.init(context);
 
     fToast.showToast(
-      child: const Text("آگهی شما ثبت شد."),
-      gravity: ToastGravity.BOTTOM,
-      toastDuration: const Duration(seconds: 2),
+      child: const Text(
+        ".آگهی شما ثبت شد",
+        style: TextStyle(fontSize: 23),
+      ),
+      gravity: ToastGravity.CENTER,
+      toastDuration: const Duration(seconds: 1),
     );
-    widget.back();
+    Timer(Duration(milliseconds: 400), () {
+      Navigator.pop(context);
+    });
   }
 
   Widget picturePage() {
@@ -558,8 +607,6 @@ class _NewMessagePageState extends State<NewMessagePage> {
         itemBuilder: (c, index) {
           if (index == 0) {
             return Container(
-              width: 170,
-              height: 170,
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Colors.blue,
@@ -651,7 +698,11 @@ class _NewMessagePageState extends State<NewMessagePage> {
           }
         },
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: MediaQuery.of(context).size.width > 550 ? 5 : 3),
+          crossAxisCount: MediaQuery.of(context).size.width > 550 ? 5 : 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: (1 / 1),
+        ),
       ),
     );
   }
@@ -666,7 +717,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
           ),
         ),
         border: const OutlineInputBorder(),
-        labelStyle: TextStyle(color: Colors.cyanAccent),
+        labelStyle: TextStyle(color: Colors.deepPurple),
         labelText: label);
   }
 }

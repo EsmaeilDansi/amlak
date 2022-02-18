@@ -1,103 +1,155 @@
 import 'package:amlak_client/page/announcement_page.dart';
-import 'package:amlak_client/page/my_page.dart';
+import 'package:amlak_client/page/my_messge_page.dart';
 import 'package:amlak_client/page/new_msg_page.dart';
+import 'package:amlak_client/page/pinnedPage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:rxdart/subjects.dart';
 
-enum page { announcementPage, addMessage, myPage }
-
 class HomePage extends StatelessWidget {
   HomePage({Key? key}) : super(key: key);
-
-  final BehaviorSubject<page> _pageSubject =
-      BehaviorSubject.seeded(page.announcementPage);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SizedBox(
-          height: 50,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.end,
+        appBar: AppBar(title: const Text("همه آگهی ها"),backgroundColor: Colors.deepPurple,),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
             children: [
-              GestureDetector(
-                onTap: () => _pageSubject.add(page.myPage),
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.deepPurple,
+                ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: const [
-                    Icon(
-                      Icons.article_outlined,
-                      color: Colors.blue,
+                    Padding(
+                      padding: EdgeInsets.only(right: 100),
+                      child: Image(
+                        image: AssetImage('assets/ic_launcher.png'),
+                        width: 120,
+                        height: 110,
+                        color: Colors.blue,
+                      ),
                     ),
-                    Text("آگهی های  من")
                   ],
                 ),
               ),
-              GestureDetector(
-                onTap: () => _pageSubject.add(page.addMessage),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
-                    Icon(
-                      Icons.add,
-                      color: Colors.blue,
-                    ),
-                    Text(" ثبت آگهی جدید")
-                  ],
+              ListTile(
+                leading: const Icon(
+                  CupertinoIcons.add,
+                  color: Colors.deepPurple,
                 ),
+                title: Text(
+                  'ثبت آگهی جدید',
+                  style: _style(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (c) {
+                    return const NewMessagePage();
+                  }));
+                },
               ),
-              GestureDetector(
-                onTap: () => _pageSubject.add(page.announcementPage),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
-                    Icon(
-                      Icons.assignment_outlined,
-                      color: Colors.blue,
-                    ),
-                    Text("همه آگهی ها")
-                  ],
+              ListTile(
+                leading: const Icon(
+                  CupertinoIcons.bookmark_fill,
+                  color: Colors.deepPurple,
+                ),
+                title: Text(
+                  'نشان شده ها',
+                  style: _style(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (c) {
+                    return PinnedPage();
+                  }));
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  CupertinoIcons.doc_person,
+                  color: Colors.deepPurple,
+                ),
+                title: Text(
+                  'آکهی های من',
+                  style: _style(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (c) {
+                    return MyMessagePage();
+                  }));
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  CupertinoIcons.doc_plaintext,
+                  color: Colors.deepPurple,
+                ),
+                title: Text(
+                  'درباره من',
+                  style: _style(),
+                ),
+                onTap: () {
+                  // showDialog(
+                  //     context: context,
+                  //     builder: (c) {
+                  //       return const Text("we");
+                  //     });
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  CupertinoIcons.checkmark_seal,
+                  color: Colors.deepPurple,
+                ),
+                title: Text(
+                  'نسخه 1.0.0',
+                  style: _style(),
                 ),
               ),
             ],
           ),
         ),
-      ),
-
-      body: StreamBuilder<page>(
-          stream: _pageSubject.stream,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data == null) {
-              return const SizedBox.shrink();
-            }
-            if (snapshot.data == page.announcementPage) {
-              return const AnnouncementPage();
-            } else if (snapshot.data == page.addMessage) {
-              return NewMessagePage(
-                back: () {
-                  _pageSubject.add(page.announcementPage);
-                },
-              );
-            } else if (snapshot.data == page.myPage) {
-              return MyPage();
-            } else {
-              return Center(
-                // Center is a layout widget. It takes a single child and positions it
-                // in the middle of the parent.
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const <Widget>[
-                    Text("آگهی ای وجود ندارد."),
-                  ],
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (c) {
+                      return const NewMessagePage();
+                    }));
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: const [
+                      Icon(
+                        CupertinoIcons.add_circled_solid,
+                        color: Colors.deepPurple,
+                        size: 30,
+                      ),
+                      Text(" ثبت آگهی جدید")
+                    ],
+                  ),
                 ),
-              );
-            }
-          }),
-      // This trailing comma makes auto-formatting nicer for build methods.
-    );
+              ],
+            ),
+          ),
+        ),
+        body: const AnnouncementPage()
+        // This trailing comma makes auto-formatting nicer for build methods.
+        );
+  }
+
+  TextStyle _style() {
+    return TextStyle(color: Colors.black, fontSize: 16);
   }
 }

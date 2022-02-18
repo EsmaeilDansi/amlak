@@ -8,6 +8,7 @@ class FileDao {
   }
 
   saveFile(File file) async {
+    print(file.uuid.toString());
     var box = await _open();
     box.put(file.uuid, file);
   }
@@ -23,7 +24,6 @@ class FileDao {
         .where((element) => element.messageId == messageId)
         .toList();
   }
-
-
+  
 
 }

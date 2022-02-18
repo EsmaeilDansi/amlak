@@ -10,6 +10,7 @@ import 'package:get_it/get_it.dart';
 import 'package:amlak_client/db/entity/file.dart' as model;
 
 import 'message_page.dart';
+import 'message_widget.dart';
 
 class PinnedPage extends StatefulWidget {
   @override
@@ -24,137 +25,38 @@ class _PinnedPageState extends State<PinnedPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("نشان شده ها"),
+        title: Text("نشان شده ها"),backgroundColor: Colors.deepPurple,
       ),
-      body: FutureBuilder<List<Message>?>(
-        future: _messageDao.getPinnedMessage(),
-        builder: (c, d) {
-          if (d.hasData && d.data != null && d.data!.isNotEmpty) {
-            return ListView.builder(
-                shrinkWrap: true,
-                itemCount: d.data!.length,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FutureBuilder<List<Message>?>(
+          future: _messageDao.getPinnedMessage(),
+          builder: (c, snapshot) {
+            if (snapshot.hasData &&
+                snapshot.data != null &&
+                snapshot.data!.isNotEmpty) {
+              return GridView.builder(
+                itemCount: snapshot.data!.length,
                 itemBuilder: (c, index) {
-                  return buildMessageWidget(d.data![index]);
-                });
-          } else {
-            return const Center(child: Text("شما هیچ آگهی نشان شده ندارید."));
-          }
-        },
-      ),
-    );
-  }
-
-  Widget buildMessageWidget(Message message) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (c) {
-          return MessagePage(message);
-        }));
-      },
-      child: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 15),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.blue,
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: IconButton(
-                    icon: Icon(message.isPined
-                        ? CupertinoIcons.bookmark_fill
-                        : CupertinoIcons.bookmark),
-                    onPressed: () {
-                      _messageDao
-                          .saveMessage(message..isPined = !message.isPined);
-                      setState(() {});
-                    },
-                  ),
-                ),
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (message.messageType == MessageType.kharid ||
-                      message.messageType == MessageType.rahn_kardan ||
-                      message.messageType == MessageType.ajara_kardan)
-                    const Padding(
-                      padding: EdgeInsets.only(left: 5),
-                      child: Icon(
-                        Icons.wallpaper_sharp,
-                        size: 100,
-                      ),
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsets.only(left: 5),
-                      child: getImage(message.fileUuid!),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 30),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width / 3,
-                          child: Center(
-                            child: Text(
-                              message.caption,
-                              style: TextStyle(
-                                color: Colors.blue,
-                              ),
-                              maxLines: 15,
-                            ),
-                          ),
-                        ),
-                        Text(message.location),
-                        Row(
-                          children: [
-                            Text("تومان"),
-                            Text(message.value.toString()),
-                          ],
-                        ),
-                        Text(DateTime.fromMillisecondsSinceEpoch(message.time)
-                            .toString())
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget getImage(String messageId) {
-    return SizedBox(
-      height: 120,
-      child: FutureBuilder<List<model.File>?>(
-          future: _messageRepo.getMessageFile(messageId),
-          builder: (c, file) {
-            if (file.hasData && file.data != null && file.data!.isNotEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.file(
-                  File(file.data![0].path),
+                  return MessageWidget(message: snapshot.data![index]);
+                },
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: Platform.isAndroid
+                      ? 1
+                      : MediaQuery.of(context).size.width < 600
+                          ? 1
+                          : 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: (2 / 1),
                 ),
               );
             } else {
-              return const Icon(
-                Icons.wallpaper_sharp,
-                size: 100,
-              );
+              return const Center(child: Text("شما هیچ آگهی نشان شده ندارید."));
             }
-          }),
+          },
+        ),
+      ),
     );
   }
 }

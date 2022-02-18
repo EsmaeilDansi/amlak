@@ -19,20 +19,16 @@ import 'db/entity/message.dart';
 
 void main() {
   _initDb();
-  _register();
-  runApp(const MyApp());
+
 }
 
-_initDb() {
-  Hive.initFlutter("db");
+_initDb() async {
+  await Hive.initFlutter("db");
   Hive.registerAdapter(UserAdapter());
   Hive.registerAdapter(FileAdapter());
   Hive.registerAdapter(MessageTypeAdapter());
   Hive.registerAdapter(MessageAdapter());
   Hive.registerAdapter(AccountAdapter());
-}
-
-_register() {
   GetIt.I.registerSingleton<UserDao>(UserDao());
   GetIt.I.registerSingleton<FileDao>(FileDao());
   GetIt.I.registerSingleton<MessageDao>(MessageDao());
@@ -41,6 +37,7 @@ _register() {
   GetIt.I.registerSingleton<MessageRepo>(MessageRepo());
   GetIt.I.registerSingleton<PermissionServices>(PermissionServices());
   GetIt.I.registerSingleton<LocationServices>(LocationServices());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
