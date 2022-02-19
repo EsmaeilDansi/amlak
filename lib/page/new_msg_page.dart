@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:amlak_client/db/dao/accountDao.dart';
-import 'package:amlak_client/db/entity/account.dart';
-import 'package:amlak_client/db/entity/message.dart';
-import 'package:amlak_client/db/entity/message_type.dart';
-import 'package:amlak_client/repo/messageRepo.dart';
-import 'package:amlak_client/services/locationServices.dart';
+import 'package:Amlak/db/dao/accountDao.dart';
+import 'package:Amlak/db/entity/account.dart';
+import 'package:Amlak/db/entity/message.dart';
+import 'package:Amlak/db/entity/message_type.dart';
+import 'package:Amlak/repo/messageRepo.dart';
+import 'package:Amlak/services/locationServices.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
-project(amlak_client LANGUAGES CXX)
+project(Amlak LANGUAGES CXX)
 
-set(BINARY_NAME "amlak_client")
+set(BINARY_NAME "Amlak")
 
 cmake_policy(SET CMP0063 NEW)
 

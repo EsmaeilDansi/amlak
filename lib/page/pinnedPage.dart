@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:amlak_client/db/dao/messageDao.dart';
-import 'package:amlak_client/db/entity/message.dart';
-import 'package:amlak_client/db/entity/message_type.dart';
-import 'package:amlak_client/repo/messageRepo.dart';
+import 'package:Amlak/db/dao/messageDao.dart';
+import 'package:Amlak/db/entity/message.dart';
+import 'package:Amlak/db/entity/message_type.dart';
+import 'package:Amlak/repo/messageRepo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:amlak_client/db/entity/file.dart' as model;
+import 'package:Amlak/db/entity/file.dart' as model;
 
 import 'message_page.dart';
 import 'message_widget.dart';

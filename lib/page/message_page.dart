@@ -1,15 +1,19 @@
-import 'package:amlak_client/db/entity/message.dart';
-import 'package:amlak_client/repo/messageRepo.dart';
+import 'package:Amlak/db/dao/accountDao.dart';
+import 'package:Amlak/db/entity/account.dart';
+import 'package:Amlak/db/entity/message.dart';
+import 'package:Amlak/page/chat_page.dart';
+import 'package:Amlak/repo/messageRepo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'dart:io';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:amlak_client/db/dao/messageDao.dart';
-import 'package:amlak_client/db/entity/file.dart' as model;
+import 'package:Amlak/db/dao/messageDao.dart';
+import 'package:Amlak/db/entity/file.dart' as model;
 
 class MessagePage extends StatefulWidget {
   Message message;
@@ -22,15 +26,16 @@ class MessagePage extends StatefulWidget {
 
 class _MessagePageState extends State<MessagePage> {
   int _current = 0;
-  var _messageRepo = GetIt.I.get<MessageRepo>();
+  final _messageRepo = GetIt.I.get<MessageRepo>();
+  final _accountDao = GetIt.I.get<AccountDao>();
   final SwiperController _swiperController = SwiperController();
+  final _textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("نمایش آگهی"),backgroundColor: Colors.deepPurple
-      ),
+          title: const Text("نمایش آگهی"), backgroundColor: Colors.deepPurple),
       body: Column(
         children: [
           FutureBuilder<List<model.File>?>(
@@ -154,97 +159,202 @@ class _MessagePageState extends State<MessagePage> {
           SizedBox(
             height: 40,
           ),
-          if (Platform.isAndroid)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  child: TextButton(
-                      onPressed: () {
-                        TextEditingController controller =
-                            TextEditingController();
-                        showDialog(
-                            context: context,
-                            builder: (c) {
-                              return AlertDialog(
-                                title: Center(child: Text("ارسال پیام")),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    TextField(
-                                      controller: controller,
-                                      decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelStyle: TextStyle(
-                                              color: Colors.deepPurple),
-                                          labelText: "پیام را وارد کنید"),
-                                    ),
-                                    TextButton(
-                                        onPressed: () {
-                                          _sendSMS(controller.text, [
-                                            "0${widget.message.ownerPhoneNumber}"
-                                          ]);
-                                        },
-                                        child: Text("ارسال"))
-                                  ],
-                                ),
-                              );
-                            });
-                      },
-                      child: Text("ارسال پیام ")),
-                ),
-                Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.blue,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: TextButton(
-                      child: Text("تماس"),
-                      onPressed: () async {
-                        await launch(
-                            "tel://0${widget.message.ownerPhoneNumber}");
-                      },
-                    ))
-              ],
-            )
-          else
-            Center(
-              child: TextButton(
-                  onPressed: () async {
-                    showDialog(
-                        context: context,
-                        builder: (c) {
-                          return AlertDialog(
-                            title: Text("مشاهده شماره تماس"),
-                            content:
-                                Text("0${widget.message.ownerPhoneNumber}"),
-                          );
-                        });
-                  },
-                  child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.blue,
-                          width: 1,
+          FutureBuilder<Account?>(
+              future: _accountDao.getAccount(),
+              builder: (c, ac) {
+                if (ac.hasData &&
+                    ac.data != null &&
+                    !widget.message.owner_id
+                        .toString()
+                        .contains(ac.data!.phoneNumber.toString())) {
+                  if (Platform.isAndroid) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.blue,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: TextButton(
+                              onPressed: () {
+                                TextEditingController controller =
+                                    TextEditingController();
+                                showDialog(
+                                    context: context,
+                                    builder: (c) {
+                                      return AlertDialog(
+                                        title:
+                                            Center(child: const Text("ارسال پیام")),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            TextField(
+                                              controller: controller,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelStyle: TextStyle(
+                                                      color: Colors.deepPurple),
+                                                  labelText:
+                                                      "پیام را وارد کنید"),
+                                            ),
+                                            TextButton(
+                                                onPressed: () {
+                                                  _sendSMS(controller.text, [
+                                                    "0${widget.message.ownerPhoneNumber}"
+                                                  ]);
+                                                },
+                                                child: const Text("ارسال"))
+                                          ],
+                                        ),
+                                      );
+                                    });
+                              },
+                              child: const Text("ارسال پیام ")),
                         ),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Text(
-                        "مشاهده شماره تماس",
-                        style: TextStyle(fontSize: 30),
-                      ))),
-            )
+                        startChat(context),
+                        Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.blue,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: TextButton(
+                              child: const Text("تماس"),
+                              onPressed: () async {
+                                await launch(
+                                    "tel://0${widget.message.ownerPhoneNumber}");
+                              },
+                            ))
+                      ],
+                    );
+                  } else {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        startChat(context),
+                        TextButton(
+                            onPressed: () async {
+                              showDialog(
+                                  context: context,
+                                  builder: (c) {
+                                    return AlertDialog(
+                                      title: const Center(
+                                          child: Text("مشاهده شماره تماس")),
+                                      content: Center(
+                                          child: Text(
+                                              "0${widget.message.ownerPhoneNumber}")),
+                                    );
+                                  });
+                            },
+                            child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.blue,
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(7),
+                                ),
+                                child: const Text(
+                                  "مشاهده شماره تماس",
+                                  style: TextStyle(fontSize: 20),
+                                ))),
+                      ],
+                    );
+                  }
+                } else {
+                  return SizedBox.shrink();
+                }
+              }),
         ],
+      ),
+    );
+  }
+
+  startChat(BuildContext context) {
+    return TextButton(
+      onPressed: () async {
+        var account = await _accountDao.getAccount();
+        if (account != null) {
+          _messageRepo.createConnection();
+          Navigator.push(context, MaterialPageRoute(builder: (c) {
+            return ChatPage(widget.message, account.phoneNumber.toString());
+          }));
+        } else {
+          showDialog(
+              context: context,
+              builder: (c) {
+                return AlertDialog(
+                  title: const Center(
+                    child: Text(
+                      "ابتدا باید لاگین کنید.",
+                      style: TextStyle(color: Colors.deepPurple, fontSize: 20),
+                    ),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                          maxLength: 11,
+                          maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                          controller: _textController,
+                          decoration: const InputDecoration(
+                              suffixIcon: Padding(
+                                padding: EdgeInsets.only(top: 20, left: 25),
+                                child: Text(
+                                  "*",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                              border: OutlineInputBorder(),
+                              hintText: "09121234567",
+                              labelStyle: TextStyle(color: Colors.cyanAccent),
+                              labelText: "شماره تلفن")),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.blue,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: TextButton(
+                            onPressed: () {
+                              if (_textController.text.isNotEmpty &&
+                                  _textController.text.length == 11) {
+                                _accountDao.saveAccount(
+                                    Account(int.parse(_textController.text)));
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: const Text("ثبت نام")),
+                      )
+                    ],
+                  ),
+                );
+              });
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.blue,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: const Text(
+          "شروع چت",
+          style: TextStyle(fontSize: 20),
+        ),
       ),
     );
   }

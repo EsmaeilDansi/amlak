@@ -1,7 +1,7 @@
 
 
-import 'package:amlak_client/db/dao/accountDao.dart';
-import 'package:amlak_client/db/entity/account.dart';
+import 'package:Amlak/db/dao/accountDao.dart';
+import 'package:Amlak/db/entity/account.dart';
 import 'package:get_it/get_it.dart';
 
 

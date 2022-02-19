@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 part 'message_type.g.dart';
 
-@HiveType(typeId: 7)
+@HiveType(typeId: 4)
 enum MessageType {
   @HiveField(0)
   ajara_dadan,

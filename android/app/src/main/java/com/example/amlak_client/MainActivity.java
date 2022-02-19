@@ -1,4 +1,4 @@
-package com.example.amlak_client;
+package com.example.Amlak;
 
 import io.flutter.embedding.android.FlutterActivity;
 

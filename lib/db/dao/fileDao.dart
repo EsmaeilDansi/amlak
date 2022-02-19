@@ -1,5 +1,4 @@
-import 'package:amlak_client/db/entity/file.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:Amlak/db/entity/file.dart';
 import 'package:hive/hive.dart';
 
 class FileDao {
@@ -8,7 +7,6 @@ class FileDao {
   }
 
   saveFile(File file) async {
-    print(file.uuid.toString());
     var box = await _open();
     box.put(file.uuid, file);
   }

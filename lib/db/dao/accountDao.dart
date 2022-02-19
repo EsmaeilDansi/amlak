@@ -1,4 +1,4 @@
-import 'package:amlak_client/db/entity/account.dart';
+import 'package:Amlak/db/entity/account.dart';
 import 'package:hive/hive.dart';
 
 class AccountDao {

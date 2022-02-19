@@ -1,11 +1,10 @@
 import 'dart:io';
 
-import 'package:amlak_client/db/dao/accountDao.dart';
-import 'package:amlak_client/db/dao/messageDao.dart';
-import 'package:amlak_client/db/entity/account.dart';
-import 'package:amlak_client/db/entity/message.dart';
-import 'package:amlak_client/db/entity/message_type.dart';
-import 'package:amlak_client/repo/messageRepo.dart';
+import 'package:Amlak/db/dao/accountDao.dart';
+import 'package:Amlak/db/dao/messageDao.dart';
+import 'package:Amlak/db/entity/account.dart';
+import 'package:Amlak/db/entity/message.dart';
+import 'package:Amlak/repo/messageRepo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -19,14 +18,14 @@ class MyMessagePage extends StatefulWidget {
 }
 
 class _MyMessagePageState extends State<MyMessagePage> {
-  var _messageDao = GetIt.I.get<MessageDao>();
-  var _messageRepo = GetIt.I.get<MessageRepo>();
+  final _messageDao = GetIt.I.get<MessageDao>();
+  final _messageRepo = GetIt.I.get<MessageRepo>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("آگهی های من"),backgroundColor: Colors.deepPurple,
+        title: const Text("آگهی های من"),backgroundColor: Colors.deepPurple,
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -81,7 +80,7 @@ class _MyMessagePageState extends State<MyMessagePage> {
                   },
                 );
               } else {
-                return Center(child: Text("پیامی وجود ندارد."));
+                return const Center(child: Text("پیامی وجود ندارد."));
               }
             }),
       ),

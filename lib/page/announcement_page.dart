@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:amlak_client/db/dao/messageDao.dart';
-import 'package:amlak_client/db/entity/file.dart' as model;
-import 'package:amlak_client/db/entity/message.dart';
-import 'package:amlak_client/db/entity/message_type.dart';
-import 'package:amlak_client/page/message_page.dart';
-import 'package:amlak_client/page/message_widget.dart';
-import 'package:amlak_client/repo/messageRepo.dart';
-import 'package:amlak_client/services/locationServices.dart';
+import 'package:Amlak/db/dao/messageDao.dart';
+import 'package:Amlak/db/entity/file.dart' as model;
+import 'package:Amlak/db/entity/message.dart';
+import 'package:Amlak/db/entity/message_type.dart';
+import 'package:Amlak/page/message_page.dart';
+import 'package:Amlak/page/message_widget.dart';
+import 'package:Amlak/repo/messageRepo.dart';
+import 'package:Amlak/services/locationServices.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +27,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
 
   @override
   void initState() {
+    _messageRepo.createConnection();
     _messageRepo.fetchMessage();
     _loadLocation();
     super.initState();
@@ -51,7 +52,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   List<Province> _provinces = [];
 
   final BehaviorSubject<bool> _search = BehaviorSubject.seeded(false);
-  RefreshController _refreshController =
+  final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
 
   @override
@@ -409,7 +410,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                         style:
                                             TextStyle(color: Colors.deepPurple),
                                       ),
-                                      SizedBox(
+                                      const SizedBox(
                                         height: 10,
                                       ),
                                       Row(

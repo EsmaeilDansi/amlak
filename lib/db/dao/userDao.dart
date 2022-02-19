@@ -1,4 +1,4 @@
-import 'package:amlak_client/db/entity/user.dart';
+import 'package:Amlak/db/entity/user.dart';
 
 import 'package:hive/hive.dart';
 

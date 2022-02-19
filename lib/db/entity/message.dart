@@ -1,4 +1,4 @@
-import 'package:amlak_client/db/entity/message_type.dart';
+import 'package:Amlak/db/entity/message_type.dart';
 import 'package:hive/hive.dart';
 
 part 'message.g.dart';

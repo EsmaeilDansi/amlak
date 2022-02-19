@@ -1,4 +1,4 @@
-# amlak_client
+# Amlak
 
 A new Flutter project.
 

@@ -1,11 +1,13 @@
-import 'package:amlak_client/page/announcement_page.dart';
-import 'package:amlak_client/page/my_messge_page.dart';
-import 'package:amlak_client/page/new_msg_page.dart';
-import 'package:amlak_client/page/pinnedPage.dart';
+import 'package:Amlak/page/announcement_page.dart';
+import 'package:Amlak/page/my_messge_page.dart';
+import 'package:Amlak/page/new_msg_page.dart';
+import 'package:Amlak/page/pinnedPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:rxdart/subjects.dart';
+
+import 'all_room_page.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({Key? key}) : super(key: key);
@@ -49,6 +51,22 @@ class HomePage extends StatelessWidget {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (c) {
                     return const NewMessagePage();
+                  }));
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  CupertinoIcons.chat_bubble_2,
+                  color: Colors.deepPurple,
+                ),
+                title: Text(
+                  'چت ها',
+                  style: _style(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (c) {
+                    return AllRoomPage();
                   }));
                 },
               ),
