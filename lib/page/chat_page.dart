@@ -51,7 +51,7 @@ class _ChatPageState extends State<ChatPage> {
                               snapshot.data!.isNotEmpty) {
                             return Expanded(
                                 child: Container(
-                              color: Colors.cyanAccent,
+                              color: Colors.tealAccent.withOpacity(0.5),
                               child: ListView.builder(
                                   reverse: true,
                                   itemCount: snapshot.data!.length,
@@ -75,8 +75,23 @@ class _ChatPageState extends State<ChatPage> {
                                                 borderRadius:
                                                     BorderRadius.circular(5),
                                               ),
-                                              child: Text(snapshot
-                                                  .data![index].content)),
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    snapshot
+                                                        .data![index].content,
+                                                    style: const TextStyle(
+                                                        fontSize: 20),
+                                                  ),
+                                                  if (snapshot.data![index].from
+                                                      .contains(ac
+                                                          .data!.phoneNumber
+                                                          .toString()))
+                                                    Icon(
+                                                      CupertinoIcons.checkmark,
+                                                    )
+                                                ],
+                                              )),
                                         ],
                                       ),
                                     );
