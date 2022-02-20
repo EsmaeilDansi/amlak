@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:Amlak/db/dao/accountDao.dart';
 import 'package:Amlak/db/dao/chatDao.dart';
@@ -13,8 +14,10 @@ import 'package:Amlak/db/entity/message.dart';
 import 'package:Amlak/db/entity/message_type.dart';
 import 'package:Amlak/db/entity/room.dart';
 import 'package:Amlak/services/permissionServices.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:dio/dio.dart' as d;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import 'package:http_parser/http_parser.dart';
 
@@ -24,6 +27,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
+import 'package:win_toast/win_toast.dart';
 
 const String baseUri = "http://192.168.25.61:8090";
 const socketUri = '$baseUri/websocket-chat';
@@ -155,26 +159,38 @@ class MessageRepo {
   }
 
   _saveChat(String body) {
-    print(body.toString());
     var res = jsonDecode(body);
+    String from = res["sender"];
+    String to = res["receiver"];
+    String ownerId = res["ownerId"];
+    String messageId = res["messageId"];
     _chatDao.save(Chat(
         id: res["id"].toString(),
-        from: res["sender"],
+        from: from,
         time: res["time"],
-        messageId: res["messageId"],
+        messageId: messageId,
         content: res["content"],
-        to: res["receiver"]));
-    _roomDao.save(Room(
-        time: res["time"],
-        messageId: res["messageId"],
-        from: res["sender"],
-        isReed: false));
+        to: to));
+    _roomDao.save(
+        Room(
+            time: res["time"],
+            messageId: messageId,
+            from: from,
+            to: to,
+            lastMessage: res["content"],
+            ownerId: ownerId,
+            isReed: false),
+        messageId + ownerId + (from.contains(ownerId) ? to : from));
+
+      showNotification(res["content"]);
+
   }
 
   sendChat(
       {required String content,
       required String from,
       required String to,
+      required String ownerId,
       required String messageId}) async {
     try {
       var rng = Random();
@@ -192,7 +208,8 @@ class MessageRepo {
           'receiver': to,
           'time': time.toString(),
           'content': content,
-          'messageId': messageId
+          'messageId': messageId,
+          'ownerId': ownerId
         }),
       );
       _chatDao.save(Chat(
@@ -203,7 +220,15 @@ class MessageRepo {
           to: to,
           messageId: messageId));
       _roomDao.save(
-          Room(isReed: true, messageId: messageId, from: from, time: time));
+          Room(
+              isReed: true,
+              messageId: messageId,
+              from: from,
+              to: to,
+              lastMessage: content,
+              time: time,
+              ownerId: ownerId),
+          messageId + ownerId + (from.contains(ownerId) ? to : from));
     } catch (e) {
       print(e.toString());
     }
@@ -330,5 +355,51 @@ class MessageRepo {
       _fileDao
           .saveFile(f.File(element, messageFileId + element, messageFileId));
     });
+  }
+}
+
+showNotification(String content) async {
+  if(Platform.isAndroid) {
+    AwesomeNotifications().initialize(
+      // set the icon to null if you want to use the default app icon
+        null,
+        [
+          NotificationChannel(
+              channelGroupKey: 'basic_channel_group',
+              channelKey: 'basic_channel',
+              channelName: 'Basic notifications',
+              channelDescription: 'Notification channel for basic tests',
+              defaultColor: Color(0xFF9D50DD),
+              ledColor: Colors.white)
+        ],
+        // Channel groups are only visual and are not required
+        channelGroups: [
+          NotificationChannelGroup(
+              channelGroupkey: 'basic_channel_group',
+              channelGroupName: 'Basic group')
+        ],
+        debug: true);
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if (!isAllowed) {
+        // This is just a basic example. For real apps, you must show some
+        // friendly dialog box before call the request method.
+        // This is very important to not harm the user experience
+        AwesomeNotifications().requestPermissionToSendNotifications();
+      }
+    });
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: 10,
+            channelKey: 'basic_channel',
+            title: 'Amlak',
+            body: content));
+  }else{
+    await WinToast.instance().initialize(
+        appName: 'Amlak',
+        productName: 'wAmlak',
+        companyName: 'Amlak');
+
+    await WinToast.instance().showToast(
+        type: ToastType.text01, title: content);
   }
 }

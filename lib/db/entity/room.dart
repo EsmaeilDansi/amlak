@@ -16,9 +16,21 @@ class Room {
   @HiveField(3)
   bool isReed;
 
+  @HiveField(4)
+  String ownerId;
+
+  @HiveField(5)
+  String to;
+
+  @HiveField(6)
+  String lastMessage;
+
   Room(
       {required this.from,
       required this.messageId,
       required this.time,
-      required this.isReed});
+      required this.lastMessage,
+      required this.ownerId,
+      required this.isReed,
+      required this.to});
 }

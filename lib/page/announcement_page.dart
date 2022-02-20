@@ -278,6 +278,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                   IconButton(
                       onPressed: () {
                         _messageRepo.fetchMessage();
+                        _messageRepo.fetchChats();
                       },
                       icon: const Icon(
                         CupertinoIcons.arrow_counterclockwise_circle,
@@ -613,7 +614,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
               ],
             ),
           ),
-          Divider(),
+          const Divider(),
           Expanded(
               child: StreamBuilder<String>(
             stream: _currentLocation.stream,
@@ -640,7 +641,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                             controller: _refreshController,
                                             enablePullDown: true,
                                             enablePullUp: false,
-                                            header: WaterDropHeader(),
+                                            header: const WaterDropHeader(),
                                             footer: CustomFooter(
                                               builder: (BuildContext context,
                                                   LoadStatus? mode) {
@@ -697,33 +698,40 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                               ),
                                             ));
                                       } else {
-                                        return const Center(
-                                          child: Text(
-                                            "!آگهی ای وجود نداد",
-                                            style: TextStyle(
-                                                color: Colors.blue,
-                                                fontSize: 17),
-                                          ),
-                                        );
+                                        return buildNotFound();
                                       }
                                     });
                               } else {
-                                return const Center(
-                                  child: Text(
-                                    "آگهی ای وجود نداد!",
-                                    style: TextStyle(
-                                        color: Colors.blue, fontSize: 17),
-                                  ),
-                                );
+                                return buildNotFound();
                               }
                             });
                       }
-                      return const Center(child: Text("آگهی وجود ندارد."));
+                      return buildNotFound();
                     });
               }
-              return const Center(child: Text("آگهی وجود ندارد."));
+              return buildNotFound();
             },
           ))
+        ],
+      ),
+    );
+  }
+
+  Center buildNotFound() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.refresh_bold),
+            onPressed: () {
+              _messageRepo.fetchMessage();
+            },
+          ),
+          const Text(
+            "!آگهی ای وجود نداد",
+            style: TextStyle(color: Colors.blue, fontSize: 17),
+          ),
         ],
       ),
     );

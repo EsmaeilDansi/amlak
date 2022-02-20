@@ -1,6 +1,7 @@
 import 'package:Amlak/db/dao/accountDao.dart';
 import 'package:Amlak/db/entity/account.dart';
 import 'package:Amlak/db/entity/message.dart';
+import 'package:Amlak/db/entity/room.dart';
 import 'package:Amlak/page/chat_page.dart';
 import 'package:Amlak/repo/messageRepo.dart';
 import 'package:flutter/cupertino.dart';
@@ -187,8 +188,8 @@ class _MessagePageState extends State<MessagePage> {
                                     context: context,
                                     builder: (c) {
                                       return AlertDialog(
-                                        title:
-                                            Center(child: const Text("ارسال پیام")),
+                                        title: Center(
+                                            child: const Text("ارسال پیام")),
                                         content: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
@@ -267,7 +268,20 @@ class _MessagePageState extends State<MessagePage> {
                       ],
                     );
                   }
-                } else {
+                } else if (!ac.hasData &&
+                    ac.data == null &&
+                    ac.connectionState == ConnectionState.done) {
+                  return TextButton(
+                    child: const Text("برای شروع چت ضر به بزنید"),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (c) {
+                            return login(context);
+                          });
+                    },
+                  );
+                } else{
                   return SizedBox.shrink();
                 }
               }),
@@ -283,63 +297,20 @@ class _MessagePageState extends State<MessagePage> {
         if (account != null) {
           _messageRepo.createConnection();
           Navigator.push(context, MaterialPageRoute(builder: (c) {
-            return ChatPage(widget.message, account.phoneNumber.toString());
+            return ChatPage(Room(
+                from: account.phoneNumber.toString(),
+                messageId: widget.message.id.toString(),
+                time: 0,
+                lastMessage: "",
+                ownerId: widget.message.owner_id,
+                isReed: false,
+                to: widget.message.owner_id));
           }));
         } else {
           showDialog(
               context: context,
               builder: (c) {
-                return AlertDialog(
-                  title: const Center(
-                    child: Text(
-                      "ابتدا باید لاگین کنید.",
-                      style: TextStyle(color: Colors.deepPurple, fontSize: 20),
-                    ),
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                          maxLength: 11,
-                          maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                          controller: _textController,
-                          decoration: const InputDecoration(
-                              suffixIcon: Padding(
-                                padding: EdgeInsets.only(top: 20, left: 25),
-                                child: Text(
-                                  "*",
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                              border: OutlineInputBorder(),
-                              hintText: "09121234567",
-                              labelStyle: TextStyle(color: Colors.cyanAccent),
-                              labelText: "شماره تلفن")),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.blue,
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: TextButton(
-                            onPressed: () {
-                              if (_textController.text.isNotEmpty &&
-                                  _textController.text.length == 11) {
-                                _accountDao.saveAccount(
-                                    Account(int.parse(_textController.text)));
-                                Navigator.pop(context);
-                              }
-                            },
-                            child: const Text("ثبت نام")),
-                      )
-                    ],
-                  ),
-                );
+                return login(context);
               });
         }
       },
@@ -355,6 +326,61 @@ class _MessagePageState extends State<MessagePage> {
           "شروع چت",
           style: TextStyle(fontSize: 20),
         ),
+      ),
+    );
+  }
+
+  AlertDialog login(BuildContext context) {
+    return AlertDialog(
+      title: const Center(
+        child: Text(
+          "ابتدا باید لاگین کنید.",
+          style: TextStyle(color: Colors.deepPurple, fontSize: 20),
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+              maxLength: 11,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+              controller: _textController,
+              decoration: const InputDecoration(
+                  suffixIcon: Padding(
+                    padding: EdgeInsets.only(top: 20, left: 25),
+                    child: Text(
+                      "*",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  border: OutlineInputBorder(),
+                  hintText: "09121234567",
+                  labelStyle: TextStyle(color: Colors.cyanAccent),
+                  labelText: "شماره تلفن")),
+          const SizedBox(
+            height: 20,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.blue,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: TextButton(
+                onPressed: () {
+                  if (_textController.text.isNotEmpty &&
+                      _textController.text.length == 11) {
+                    _accountDao
+                        .saveAccount(Account(int.parse(_textController.text)));
+                    Navigator.pop(context);
+                    setState(() {});
+                  }
+                },
+                child: const Text("ثبت نام")),
+          )
+        ],
       ),
     );
   }

@@ -3,16 +3,16 @@ import 'package:Amlak/db/dao/chatDao.dart';
 import 'package:Amlak/db/entity/account.dart';
 import 'package:Amlak/db/entity/chat.dart';
 import 'package:Amlak/db/entity/message.dart';
+import 'package:Amlak/db/entity/room.dart';
 import 'package:Amlak/repo/messageRepo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 class ChatPage extends StatefulWidget {
-  Message message;
-  String from;
+  Room room;
 
-  ChatPage(this.message, this.from, {Key? key}) : super(key: key);
+  ChatPage(this.room, {Key? key}) : super(key: key);
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -23,6 +23,13 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _textEditingController = TextEditingController();
   final MessageRepo _messageRepo = GetIt.I.get<MessageRepo>();
   final _accountDao = GetIt.I.get<AccountDao>();
+
+
+  @override
+  void initState() {
+    _messageRepo.createConnection();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +50,8 @@ class _ChatPageState extends State<ChatPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     StreamBuilder<List<Chat>?>(
-                        stream:
-                            _chatDao.getChat(widget.message.id!, widget.from),
+                        stream: _chatDao.getChat(
+                            widget.room.messageId, widget.room.from),
                         builder: (c, snapshot) {
                           if (snapshot.hasData &&
                               snapshot.data != null &&
@@ -124,11 +131,12 @@ class _ChatPageState extends State<ChatPage> {
                                   if (_textEditingController.text.isNotEmpty) {
                                     _messageRepo.sendChat(
                                         content: _textEditingController.text,
-                                        to: widget.message.owner_id.contains(
+                                        to: widget.room.from.contains(
                                                 ac.data!.phoneNumber.toString())
-                                            ? widget.from
-                                            : widget.message.owner_id,
-                                        messageId: widget.message.id!,
+                                            ? widget.room.to
+                                            : widget.room.from,
+                                        ownerId: widget.room.ownerId,
+                                        messageId: widget.room.messageId,
                                         from: ac.data!.phoneNumber.toString());
                                     _textEditingController.clear();
                                   }

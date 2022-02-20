@@ -1,4 +1,4 @@
-import 'package:Amlak/db/entity/chat.dart';
+
 import 'package:Amlak/db/entity/room.dart';
 import 'package:hive/hive.dart';
 
@@ -7,9 +7,9 @@ class RoomDao {
     return await Hive.openBox<Room>("room");
   }
 
-  save(Room room) async {
+  save(Room room, String key) async {
     var box = await _open();
-    box.put(room.messageId + room.from, room);
+    box.put(key, room);
   }
 
   Future<List<Room>?> getAllRooms() async {
